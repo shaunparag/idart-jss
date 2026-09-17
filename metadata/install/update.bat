@@ -2,7 +2,7 @@
 ::
 :: Linux version = update.sh
 
-%@echo off
+@echo off
 set APPDIR=%~dp0
 set URL=http://update.cell-life.org/idart/updates.xml
 set NAME=iDART

@@ -112,28 +112,32 @@ public class DBScriptRunner {
 	protected String getPsqlCommand(String commandName) throws UpdateException {
 		if (System.getProperty("os.name").toUpperCase().startsWith("WINDOWS")) {
 			String postgresDir = "C:\\Program Files\\PostgreSQL";
-			Double maxVersion = Double.valueOf(0d);
-			File pg = new File("C:\\Program Files\\PostgreSQL");
+			File pg = new File(postgresDir);
 			File[] listFiles = pg.listFiles();
-			for (File file : listFiles) {
-				try {
-					if (file.isDirectory()) {
-						Double version = Double.valueOf(file.getName());
-						if (version > maxVersion) {
-							maxVersion = version;
+			if (listFiles != null) {
+				Double maxVersion = Double.valueOf(0d);
+				for (File file : listFiles) {
+					try {
+						if (file.isDirectory()) {
+							Double version = Double.valueOf(file.getName());
+							if (version > maxVersion) {
+								maxVersion = version;
+							}
 						}
+					} catch (Exception e) {
 					}
-				} catch (Exception e) {
+				}
+				if (maxVersion > 8) {
+					postgresDir = postgresDir + "\\" + maxVersion.toString();
+				}
+				File psql = new File(postgresDir + "\\bin\\" + commandName + ".exe");
+				if (psql.exists()) {
+					return "\"" + psql.getAbsolutePath() + "\"";
 				}
 			}
-			if (maxVersion > 8) {
-				postgresDir = postgresDir + "\\" + maxVersion.toString();
-			}
-			File psql = new File(postgresDir + "\\bin\\" + commandName + ".exe");
-			if (!psql.exists())
-				throw new UpdateException("Can not find command:" + commandName);
-
-			return "\"" + psql.getAbsolutePath() + "\"";
+			// Standard install directory not found (or doesn't contain this
+			// command) - fall back to PATH instead of failing outright.
+			return commandName;
 		} else
 			return commandName;
 	}

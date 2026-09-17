@@ -29,4 +29,10 @@ done
 export PHARM_CLASSPATH=$CLASSPATH
 export CLASSPATH=$TMP_CLASSPATH
 
-exec  %JAVA_HOME/bin/java  -cp $PHARM_CLASSPATH:bin/Pharmacy.jar -Djava.library.path=$PWD -Xms24m -Xmx512m $*
+if [ -n "$JAVA_HOME" ]; then
+	JAVA_CMD="$JAVA_HOME/bin/java"
+else
+	JAVA_CMD="java"
+fi
+
+exec  "$JAVA_CMD"  -cp $PHARM_CLASSPATH:bin/Pharmacy.jar -Djava.library.path=$PWD -Xms24m -Xmx512m $*

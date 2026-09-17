@@ -19,8 +19,16 @@ for %%i in (".\bin\*.jar") do call ".\cpappend.bat" %%i
 set PHARM_CLASSPATH=%CLASSPATH%;.
 set CLASSPATH=%TMP_CLASSPATH%
 
-set JAVA_HOME=$JAVA_HOME
-set JAVA_CMD=%JAVA_HOME%\bin\javaw.exe
+if defined JAVA_HOME (
+	set "JAVA_CMD=%JAVA_HOME%\bin\javaw.exe"
+) else (
+	where javaw.exe >nul 2>nul
+	if errorlevel 1 (
+		echo JAVA_HOME is not set and javaw.exe was not found on PATH. Please install a Java Runtime Environment and set JAVA_HOME.
+		exit /b 1
+	)
+	set "JAVA_CMD=javaw.exe"
+)
 
 :: %ROOT~0,-2% = extract all but the last 2 characters from the ROOT variable (in this case '\"')
 start  "iDART" "%JAVA_CMD%" -cp "%PHARM_CLASSPATH%" -Djava.library.path=%ROOT:~0,-2%" -Xms24m -Xmx512m %*

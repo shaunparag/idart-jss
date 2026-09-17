@@ -1,4 +1,4 @@
-%@echo off
+@echo off
 set FILENAME=Patients.xls
 set SHEETNAME=import
 

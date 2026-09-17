@@ -122,7 +122,7 @@
 		<replaceregexp file="unencrypted_idart.properties" match="\$hibernate_password" replace="${database.password.build}" byline="false" />
 		<replaceregexp file="unencrypted_idart.properties" match="\$hibernate_url" replace="${database.url.build}" byline="false" />
 		<replaceregexp file="unencrypted_idart.properties" match="\$update_script_dir" replace="${update.script.dir}" byline="false" />
-		<javac destdir="${build.dir}" classpathref="Large.ClassPath" debug="off" deprecation="on" optimize="off" target="1.5">
+		<javac destdir="${build.dir}" classpathref="Large.ClassPath" debug="off" deprecation="on" optimize="off" source="8" target="8">
 			<src path="src" />
 			<include name="**/PropertiesEncrypter.java" />
 		</javac>
@@ -154,7 +154,7 @@
 			</fileset>
 		</copy>
 
-		<javac destdir="${build.dir}" classpathref="Large.ClassPath" debug="on" deprecation="on" source="1.5" target="1.5">
+		<javac destdir="${build.dir}" classpathref="Large.ClassPath" debug="on" deprecation="on" source="8" target="8">
 			<src path="${tmp.dir}/src" />
 		</javac>
 	</target>
@@ -176,6 +176,12 @@
 		</taskdef>
 		<jrc srcdir="Reports/" destdir="Reports/" tempdir="${tmp.dir}" keepjava="false" xmlvalidation="true">
 			<include name="**/*.jrxml" />
+			<classpath>
+				<fileset dir="${lib.dir}">
+					<include name="**/*.jar" />
+				</fileset>
+				<pathelement location="${build.dir}" />
+			</classpath>
 		</jrc>
 	</target>
 
@@ -318,11 +324,11 @@
 	<taskdef resource="testngtasks" classpath="${lib.dir}/testng.jar" />
 	<target name="compile-tests" depends="compile">
 		<mkdir dir="${build.testng.dir}" />
-		<javac destdir="${build.testng.dir}" classpathref="Run.ClassPath" debug="on" deprecation="on" optimize="off" target="1.5">
+		<javac destdir="${build.testng.dir}" classpathref="Run.ClassPath" debug="on" deprecation="on" optimize="off" source="8" target="8">
 			<src path="test" />
 		</javac>
 		<mkdir dir="${build.junit.dir}" />
-		<javac destdir="${build.junit.dir}" classpathref="Run.ClassPath" debug="on" deprecation="on" optimize="off" target="1.5">
+		<javac destdir="${build.junit.dir}" classpathref="Run.ClassPath" debug="on" deprecation="on" optimize="off" source="8" target="8">
 			<src path="testGui" />
 		</javac>
 	</target>
@@ -435,7 +441,7 @@
 	</target>
 
 	<target name="upgrade_report_files" description="updgrade jrxml files">
-		<javac destdir="${build.dir}" classpathref="Large.ClassPath" debug="off" deprecation="on" optimize="off" target="1.5">
+		<javac destdir="${build.dir}" classpathref="Large.ClassPath" debug="off" deprecation="on" optimize="off" source="8" target="8">
 			<src path="src" />
 			<include name="**/MigrateJRXML.java" />
 		</javac>
