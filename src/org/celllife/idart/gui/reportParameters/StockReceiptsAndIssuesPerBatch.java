@@ -193,10 +193,10 @@ public class StockReceiptsAndIssuesPerBatch extends GenericReportGui {
 		lblEndDate.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 
 		calendarStart = new SWTCalendar(grpDateRange);
-		calendarStart.setBounds(20, 55, 220, 140);
+		calendarStart.setBounds(20, 55, 220, 170);
 
 		calendarEnd = new SWTCalendar(grpDateRange);
-		calendarEnd.setBounds(280, 55, 220, 140);
+		calendarEnd.setBounds(280, 55, 220, 170);
 	}
 
 	/**

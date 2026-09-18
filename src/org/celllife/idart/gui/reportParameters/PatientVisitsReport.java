@@ -118,7 +118,7 @@ public class PatientVisitsReport extends GenericReportGui {
 		grpDateRange = new Group(getShell(), SWT.NONE);
 		grpDateRange.setText("Date Range:");
 		grpDateRange.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
-		grpDateRange.setBounds(new Rectangle(68, 100, 520, 201));
+		grpDateRange.setBounds(new Rectangle(68, 100, 520, 235));
 		grpDateRange.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 
 		lblStartDate = new Label(grpDateRange, SWT.CENTER | SWT.BORDER);
@@ -134,10 +134,10 @@ public class PatientVisitsReport extends GenericReportGui {
 		lblEndDate.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 
 		calendarStart = new SWTCalendar(grpDateRange);
-		calendarStart.setBounds(20, 55, 220, 140);
+		calendarStart.setBounds(20, 55, 220, 170);
 
 		calendarEnd = new SWTCalendar(grpDateRange);
-		calendarEnd.setBounds(280, 55, 220, 140);
+		calendarEnd.setBounds(280, 55, 220, 170);
 
 		btnViewReport.setText("Create Report");
 

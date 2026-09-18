@@ -246,7 +246,14 @@ public class EpisodesStartedOrEndedReportGUI extends GenericReportGui {
 		Group grpDateRange = new Group(getShell(), SWT.NONE);
 		grpDateRange.setText("Date Range:");
 		grpDateRange.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
-		grpDateRange.setBounds(new Rectangle(70, 270, 545, 201));
+		// The calendar widgets below were only given 6px of slack under their
+		// nominal Linux/GTK rendering size (140px content in a 201px group) -
+		// on Windows, where this SWT widget's native text metrics render
+		// taller, that was enough to push it past the group's own bottom
+		// edge, crowding the View Report/Close buttons below (positioned
+		// separately, at a fixed y=520, by NewReports.java). Widened with
+		// real margin on both ends rather than a Linux-tuned minimum.
+		grpDateRange.setBounds(new Rectangle(70, 265, 545, 235));
 		grpDateRange.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 
 		Label lblStartDate = new Label(grpDateRange, SWT.CENTER | SWT.BORDER);
@@ -262,10 +269,10 @@ public class EpisodesStartedOrEndedReportGUI extends GenericReportGui {
 		lblEndDate.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 
 		calendarStart = new SWTCalendar(grpDateRange);
-		calendarStart.setBounds(10, 55, 250, 140);
+		calendarStart.setBounds(10, 55, 250, 170);
 
 		calendarEnd = new SWTCalendar(grpDateRange);
-		calendarEnd.setBounds(283, 55, 250, 140);
+		calendarEnd.setBounds(283, 55, 250, 170);
 
 	}
 

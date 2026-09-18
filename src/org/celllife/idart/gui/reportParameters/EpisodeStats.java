@@ -175,7 +175,7 @@ public class EpisodeStats extends GenericReportGui {
 
 		grpDateRange = new Group(getShell(), SWT.NONE);
 		grpDateRange.setText("Date Range:");
-		grpDateRange.setBounds(new Rectangle(30, 220, 520, 201));
+		grpDateRange.setBounds(new Rectangle(30, 220, 520, 235));
 		grpDateRange.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 
 		Label lblStartDate = new Label(grpDateRange, SWT.CENTER | SWT.BORDER);
@@ -191,10 +191,10 @@ public class EpisodeStats extends GenericReportGui {
 		lblEndDate.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 
 		calendarStart = new SWTCalendar(grpDateRange);
-		calendarStart.setBounds(20, 55, 220, 140);
+		calendarStart.setBounds(20, 55, 220, 170);
 
 		calendarEnd = new SWTCalendar(grpDateRange);
-		calendarEnd.setBounds(280, 55, 220, 140);
+		calendarEnd.setBounds(280, 55, 220, 170);
 
 	}
 

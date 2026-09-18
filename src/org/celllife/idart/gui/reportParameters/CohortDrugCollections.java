@@ -256,7 +256,7 @@ public class CohortDrugCollections extends GenericReportGui {
 		grpDateRange = new Group(getShell(), SWT.NONE);
 		grpDateRange.setText("Date Range:");
 		grpDateRange.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
-		grpDateRange.setBounds(new Rectangle(79, 120, 520, 201));
+		grpDateRange.setBounds(new Rectangle(79, 120, 520, 235));
 		grpDateRange.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 
 		Label lblStartDate = new Label(grpDateRange, SWT.CENTER | SWT.BORDER);
@@ -272,10 +272,10 @@ public class CohortDrugCollections extends GenericReportGui {
 		lblEndDate.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 
 		calendarStart = new SWTCalendar(grpDateRange);
-		calendarStart.setBounds(20, 55, 220, 140);
+		calendarStart.setBounds(20, 55, 220, 170);
 
 		calendarEnd = new SWTCalendar(grpDateRange);
-		calendarEnd.setBounds(280, 55, 220, 140);
+		calendarEnd.setBounds(280, 55, 220, 170);
 		calendarEnd.addSWTCalendarListener(new SWTCalendarListener() {
 			@Override
 			public void dateChanged(SWTCalendarEvent calendarEvent) {
