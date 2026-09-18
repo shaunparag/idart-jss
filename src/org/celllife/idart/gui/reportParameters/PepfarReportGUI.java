@@ -95,7 +95,7 @@ public class PepfarReportGUI extends GenericReportGui {
 	 */
 	@Override
 	protected void createShell() {
-		buildShell(REPORT_PEPFAR, new Rectangle(70, 50, 700, 600));
+		buildShell(REPORT_PEPFAR, new Rectangle(70, 50, 700, 640));
 		// create the composites
 		createMyGroups();
 		lblWaitWhileLoading = new Label(getShell(), SWT.CENTER);

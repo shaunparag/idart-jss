@@ -89,7 +89,7 @@ public class PatientStatsReport extends GenericReportGui {
 	@Override
 	protected void createShell() {
 		buildShell("Patient Statistics Report", new Rectangle(70, 50,
-				700, 470));
+				700, 510));
 		// create the composites
 		createMyGroups();
 	}

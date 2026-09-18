@@ -123,7 +123,7 @@ public class EpisodesStartedOrEndedReportGUI extends GenericReportGui {
 	protected void createShell() {
 
 		buildShell(REPORT_EPISODES_STARTED_OR_ENDED, new Rectangle(70,
-				50, 700, 580));
+				50, 700, 620));
 		// create the composites
 		createMyGroups();
 

@@ -108,7 +108,7 @@ public class CohortDrugCollections extends GenericReportGui {
 	@Override
 	protected void createShell() {
 		String shellTxt = Messages.getString("reports.cohortCollections");  //$NON-NLS-1$
-		Rectangle bounds = new Rectangle(70, 50, 700, 680);
+		Rectangle bounds = new Rectangle(70, 50, 700, 720);
 		buildShell(shellTxt, bounds);
 		createMyGroups();
 	}

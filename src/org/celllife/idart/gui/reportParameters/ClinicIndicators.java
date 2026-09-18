@@ -85,7 +85,7 @@ public class ClinicIndicators extends GenericReportGui {
 	 */
 	@Override
 	protected void createShell() {
-		buildShell(REPORT_CLINIC_INDICATORS, new Rectangle(100, 50, 600, 554));
+		buildShell(REPORT_CLINIC_INDICATORS, new Rectangle(100, 50, 600, 594));
 		// create the composites
 		createMyGroups();
 	}

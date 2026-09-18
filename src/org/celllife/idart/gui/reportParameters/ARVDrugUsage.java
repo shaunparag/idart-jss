@@ -98,7 +98,7 @@ public class ARVDrugUsage extends GenericReportGui {
 	 */
 	@Override
 	protected void createShell() {
-		Rectangle bounds = new Rectangle(70, 50, 700, 680);
+		Rectangle bounds = new Rectangle(70, 50, 700, 720);
 		buildShell(REPORT_ARV_DRUG_USAGE, bounds);
 		createMyGroups();
 	}

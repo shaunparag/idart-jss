@@ -79,7 +79,7 @@ public class EpisodeStats extends GenericReportGui {
 	 */
 	@Override
 	protected void createShell() {
-		buildShell(REPORT_EPISODES_STATS, new Rectangle(100, 50, 600, 554));
+		buildShell(REPORT_EPISODES_STATS, new Rectangle(100, 50, 600, 594));
 		// create the composites
 		createMyGroups();
 	}

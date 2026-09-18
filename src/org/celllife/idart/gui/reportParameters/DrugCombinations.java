@@ -97,7 +97,7 @@ public class DrugCombinations extends GenericReportGui {
 	@Override
 	protected void createShell() {
 		buildShell(REPORT_DRUG_COMBINATIONS, new Rectangle(70, 50,
-				700, 600));
+				700, 640));
 		// create the composites
 		createMyGroups();
 

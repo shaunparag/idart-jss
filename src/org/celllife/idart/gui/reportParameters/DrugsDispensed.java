@@ -112,7 +112,7 @@ public class DrugsDispensed extends GenericReportGui {
 	@Override
 	protected void createShell() {
 		String shellTxt = "Drugs Dispensed Report (Clinics, Patients & Drugs)";
-		Rectangle bounds = new Rectangle(70, 50, 700, 680);
+		Rectangle bounds = new Rectangle(70, 50, 700, 720);
 		buildShell(shellTxt, bounds);
 		createMyGroups();
 	}

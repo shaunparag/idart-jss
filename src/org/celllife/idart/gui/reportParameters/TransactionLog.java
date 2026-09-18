@@ -69,7 +69,7 @@ public class TransactionLog extends GenericReportGui {
 	 */
 	@Override
 	protected void createShell() {
-		Rectangle bounds = new Rectangle(70, 50, 700, 380);
+		Rectangle bounds = new Rectangle(70, 50, 700, 420);
 		buildShell(REPORT_TRANSACTION_LOG, bounds);
 		// create the composites
 		createMyGroups();

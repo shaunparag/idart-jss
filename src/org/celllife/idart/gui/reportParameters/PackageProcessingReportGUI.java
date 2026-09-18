@@ -88,7 +88,7 @@ public class PackageProcessingReportGUI extends GenericReportGui {
 			packageStage = PackageLifeStage.PACKED;
 		}
 		buildShell(packageStage.getAction(), new Rectangle(70, 50,
-				700, 500));
+				700, 540));
 		// create the composites
 		createMyGroups();
 

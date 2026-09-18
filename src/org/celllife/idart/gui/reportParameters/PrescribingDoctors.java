@@ -71,7 +71,7 @@ public class PrescribingDoctors extends GenericReportGui {
 	protected void createShell() {
 		buildShell(REPORT_PRESCRIBING_DOCTORS,
 				new Rectangle(70, 50,
-				700, 380));
+				700, 420));
 		// create the composites
 		createGrpDateRange();
 	}
