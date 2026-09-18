@@ -32,8 +32,11 @@
 		</fileset>
 	</path>
 
+	<!-- os.name is never the bare string "Windows" on a real machine (it's
+		"Windows 10", "Windows 11", etc.), so this must match by OS family,
+		not exact equality. Only 64-bit natives are vendored below. -->
 	<if>
-		<equals arg1="${os.name}" arg2="Windows" />
+		<os family="windows" />
 		<then>
 			<property name="os" value="win" />
 		</then>
