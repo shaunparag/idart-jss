@@ -116,14 +116,6 @@
 		</update>
 	</changeSet>
 	<changeSet author="michael" id="3.6.7">
-		<preConditions onFail="MARK_RAN" >
-			<primaryKeyExists tableName="campaign_participant" primaryKeyName="campaign_participant_pk"/>
-			<and>
-				<not>
-					<columnExists tableName="campaign_participant" columnName="id"/>
-				</not>
-			</and>
-		</preConditions>
 		<dropPrimaryKey tableName="campaign_participant" constraintName="campaign_participant_pk"/>
 		<addColumn tableName="campaign_participant">
 			<column name="id" type="int">

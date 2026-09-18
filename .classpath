@@ -59,7 +59,7 @@
 	<classpathentry kind="lib" path="lib/swtbot/org.hamcrest.text_1.1.0.v20090501071000.jar"/>
 	<classpathentry kind="lib" path="lib/swtbot/org.hamcrest.text.source_1.1.0.v20090501071000.jar"/>
 	<classpathentry kind="lib" path="lib/Java Excel API 2.6.12/jxl.jar"/>
-	<classpathentry kind="lib" path="lib/Postgresql_JDBC_Driver/postgresql-8.3-605.jdbc3.jar"/>
+	<classpathentry kind="lib" path="lib/Postgresql_JDBC_Driver/postgresql-42.7.13.jar"/>
 	<classpathentry kind="lib" path="lib/quartz-1.6.5.jar"/>
 	<classpathentry kind="lib" path="lib/jersey-client-1.5.jar"/>
 	<classpathentry kind="lib" path="lib/jersey-core-1.5.jar"/>

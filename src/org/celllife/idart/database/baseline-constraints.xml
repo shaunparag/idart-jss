@@ -186,8 +186,7 @@
 	<changeSet author="simon" id="0.2.2">
 		<sql splitStatements="false" stripComments="false">
 			<![CDATA[
-			DROP PROCEDURAL LANGUAGE IF EXISTS plpgsql;
-			CREATE PROCEDURAL LANGUAGE plpgsql;
+			CREATE EXTENSION IF NOT EXISTS plpgsql;
 			]]>
 		</sql>
 	</changeSet>

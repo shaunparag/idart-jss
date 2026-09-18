@@ -241,12 +241,19 @@ public class DatabaseTools {
 		return false;
 	}
 
+	private static boolean fixedPostgresDatabaseRegistered = false;
+
 	private void safeUpdate(String changelog, Connection session)
 	throws Exception, JDBCException {
 		ResourceAccessor fileOpener = new ClassLoaderResourceAccessor();
 		DatabaseFactory databaseFactory = DatabaseFactory.getInstance();
 		log.info("Running liquibase file: " + changelog);
-		
+
+		if (!fixedPostgresDatabaseRegistered) {
+			databaseFactory.register(new FixedPostgresDatabase());
+			fixedPostgresDatabaseRegistered = true;
+		}
+
 		Database database = databaseFactory
 				.findCorrectDatabaseImplementation(new JdbcConnection(session));
 
@@ -255,7 +262,15 @@ public class DatabaseTools {
 		// http://trac.jmatter.org/trac/browser/jmatter-complet/trunk/jmatter
 		// /src/com/u2d/persist/LiquibaseCommander.java?rev=1387
 
-		liquibase.forceReleaseLocks();
+		// Defensive cleanup only (clears a lock left by a crashed prior run);
+		// update() acquires/releases its own lock regardless, so a failure
+		// here (e.g. a full-schema snapshot tripping on driver/DB version
+		// quirks) shouldn't block a real migration attempt.
+		try {
+			liquibase.forceReleaseLocks();
+		} catch (Exception e) {
+			log.warn("Could not force-release the changelog lock; continuing.", e);
+		}
 		liquibase.update(null);
 
 	}

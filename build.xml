@@ -548,7 +548,7 @@
 			<env key="PATH" value="${graphvis.dir}" />
 			<arg line="-t pgsql" />
 			<arg line="-db ${database.name}" />
-			<arg line="-dp ${lib.dir}/Postgresql_JDBC_Driver/postgresql-8.3-605.jdbc3.jar" />
+			<arg line="-dp ${lib.dir}/Postgresql_JDBC_Driver/postgresql-42.7.13.jar" />
 			<arg line="-s public" />
 			<arg line="-u ${database.username}" />
 			<arg line="-p ${database.password}" />
