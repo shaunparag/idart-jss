@@ -238,6 +238,7 @@ public class ReportManager {
 				ViewerApp viewer = new ViewerApp();
 				viewer.getReportViewer().setDocument(jp_0);
 				viewer.open();
+				viewer.getShell().setMaximized(true);
 			} else if (!reportGenerationCancelled) {
 				MessageBox mNoPages = new MessageBox(parent, SWT.ICON_ERROR
 						| SWT.OK);
@@ -289,6 +290,7 @@ public class ReportManager {
 						ViewerApp viewer = new ViewerApp();
 						viewer.getReportViewer().setDocument(jp);
 						viewer.open();
+						viewer.getShell().setMaximized(true);
 					} else if (!reportGenerationCancelled) {
 						MessageBox mNoPages = new MessageBox(parent,
 								SWT.ICON_ERROR | SWT.OK);

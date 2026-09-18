@@ -183,6 +183,7 @@ public abstract class AbstractJasperReport implements iDARTReport {
 						ViewerApp viewer = new ViewerApp();
 						viewer.getReportViewer().setDocument(jp);
 						viewer.open();
+						viewer.getShell().setMaximized(true);
 					} else {
 						MessageBox mNoPages = new MessageBox(parent,
 								SWT.ICON_ERROR | SWT.OK);
