@@ -182,8 +182,19 @@ public abstract class AbstractJasperReport implements iDARTReport {
 					if (jp.getPages().size() > 0) {
 						ViewerApp viewer = new ViewerApp();
 						viewer.getReportViewer().setDocument(jp);
+						// Maximize before open() rather than after: getShell()
+						// was observed returning null immediately after
+						// open() on some Windows setups, crashing the whole
+						// viewer. create() is what actually populates the
+						// shell field, and doing it explicitly first also
+						// avoids any visible un-maximized flash on the way
+						// up.
+						viewer.create();
+						Shell viewerShell = viewer.getShell();
+						if (viewerShell != null && !viewerShell.isDisposed()) {
+							viewerShell.setMaximized(true);
+						}
 						viewer.open();
-						viewer.getShell().setMaximized(true);
 					} else {
 						MessageBox mNoPages = new MessageBox(parent,
 								SWT.ICON_ERROR | SWT.OK);

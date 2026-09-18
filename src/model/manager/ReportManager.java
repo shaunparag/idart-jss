@@ -237,8 +237,18 @@ public class ReportManager {
 			if (jp_0.getPages().size() > 0) {
 				ViewerApp viewer = new ViewerApp();
 				viewer.getReportViewer().setDocument(jp_0);
+				// Maximize before open() rather than after: getShell() was
+				// observed returning null immediately after open() on some
+				// Windows setups, crashing the whole viewer. create() is
+				// what actually populates the shell field, and doing it
+				// explicitly first also avoids any visible un-maximized
+				// flash on the way up.
+				viewer.create();
+				Shell viewerShell = viewer.getShell();
+				if (viewerShell != null && !viewerShell.isDisposed()) {
+					viewerShell.setMaximized(true);
+				}
 				viewer.open();
-				viewer.getShell().setMaximized(true);
 			} else if (!reportGenerationCancelled) {
 				MessageBox mNoPages = new MessageBox(parent, SWT.ICON_ERROR
 						| SWT.OK);
@@ -289,8 +299,12 @@ public class ReportManager {
 					if (jp.getPages().size() > 0) {
 						ViewerApp viewer = new ViewerApp();
 						viewer.getReportViewer().setDocument(jp);
+						viewer.create();
+						Shell viewerShell = viewer.getShell();
+						if (viewerShell != null && !viewerShell.isDisposed()) {
+							viewerShell.setMaximized(true);
+						}
 						viewer.open();
-						viewer.getShell().setMaximized(true);
 					} else if (!reportGenerationCancelled) {
 						MessageBox mNoPages = new MessageBox(parent,
 								SWT.ICON_ERROR | SWT.OK);
