@@ -248,6 +248,32 @@
 
 		<izpack input="${install.dir}/install.xml" output="${installer.name}" installerType="standard" basedir="." izPackDir="${izpack.dir}/" compression="deflate" compressionlevel="7">
 		</izpack>
+
+		<!-- The bundled IzPack compiler only packages the 32-bit ShellLink.dll
+		     (used by the Windows ShortcutPanel) under the plain name that the
+		     installer's native loader tries first. Since we require a 64-bit
+		     JVM (see WINDOWS11_INSTALL.md), that first load attempt fails,
+		     and this old IzPack version's own x64 fallback does not reliably
+		     recover from it - observed live as the installer wizard silently
+		     freezing right after the target-directory confirmation, with no
+		     error dialog (it runs as javaw.exe, so nothing is there to show
+		     one). Swap in the 64-bit DLL under that same plain name so the
+		     first attempt just succeeds. -->
+		<unzip src="${build.tools.dir}/izpack/standalone-compiler.jar" dest="${build.dir}/izpack-native-fix">
+			<patternset>
+				<include name="bin/native/izpack/ShellLink_x64.dll" />
+			</patternset>
+		</unzip>
+		<!-- The extracted file keeps its original ~2009 timestamp from inside
+		     standalone-compiler.jar. Ant's zip update="true" only replaces an
+		     entry if the incoming file is newer, and ZIP timestamps only have
+		     2-second DOS-format resolution, so even touching it to "now" isn't
+		     reliably newer than an entry written moments earlier in the same
+		     build - force it to an unambiguous future date instead. -->
+		<touch file="${build.dir}/izpack-native-fix/bin/native/izpack/ShellLink_x64.dll" datetime="01/01/2030 12:00 AM" />
+		<zip destfile="${installer.name}" update="true">
+			<zipfileset file="${build.dir}/izpack-native-fix/bin/native/izpack/ShellLink_x64.dll" fullpath="native/ShellLink.dll" />
+		</zip>
 	</target>
 
 	<!-- *****************************************************************-->
@@ -262,6 +288,17 @@
 
 		<izpack input="${install.dir}/install.xml" output="idart-install-${idart.version.short}.jar" installerType="standard" basedir="." izPackDir="${izpack.dir}/" compression="deflate" compressionlevel="7">
 		</izpack>
+
+		<!-- See the matching step (with full rationale) in generateInstaller above. -->
+		<unzip src="${build.tools.dir}/izpack/standalone-compiler.jar" dest="${build.dir}/izpack-native-fix">
+			<patternset>
+				<include name="bin/native/izpack/ShellLink_x64.dll" />
+			</patternset>
+		</unzip>
+		<touch file="${build.dir}/izpack-native-fix/bin/native/izpack/ShellLink_x64.dll" datetime="01/01/2030 12:00 AM" />
+		<zip destfile="${installer.name}" update="true">
+			<zipfileset file="${build.dir}/izpack-native-fix/bin/native/izpack/ShellLink_x64.dll" fullpath="native/ShellLink.dll" />
+		</zip>
 	</target>
 
 	<!-- *****************************************************************-->
