@@ -91,7 +91,18 @@ avoided; see the notes in `build.xml`). Do not install a newer JRE (11, 17,
    ```
    java -jar idart-install-<version>.jar
    ```
-3. Work through the installer wizard:
+3. The default install location is under `C:\Program Files`, which needs
+   administrator rights to write to. The installer requests this itself —
+   expect a Windows **User Account Control** prompt ("Do you want to allow
+   this app to make changes to your device?") right after step 2. Click
+   **Yes**. If you don't get this prompt and instead see an error saying
+   the install directory can't be written to, the installer didn't manage
+   to relaunch itself elevated (uncommon, but some locked-down/managed PCs
+   block it) — right-click the `.jar` (or your Command Prompt shortcut) and
+   choose **"Run as administrator"** manually, or use **Browse** on that
+   screen to pick a folder you already have write access to, e.g. somewhere
+   under your own user profile.
+4. Work through the installer wizard:
    - **Install path**: default is fine, or pick your own.
    - **Database Server**: `localhost` (unless PostgreSQL is on another machine).
    - **iDART Database Name**: `pharm` (must match what you created in 1.2.5).
@@ -103,7 +114,7 @@ avoided; see the notes in `build.xml`). Do not install a newer JRE (11, 17,
      (direct-dispensing vs. pre-packaging, label size, auto-logout time,
      etc.) — the defaults are reasonable to start with; all of them can be
      changed later by editing `idart.properties` in the install folder.
-4. Finish the wizard. This installs the app and creates Start Menu /
+5. Finish the wizard. This installs the app and creates Start Menu /
    desktop shortcuts.
 
 ## 3. First launch
@@ -145,6 +156,14 @@ folder) is on your PATH.
 Check the log file in the install folder for the underlying error. If it's
 a permissions error, confirm the database user (`postgres` by default) has
 rights to create tables in the target database.
+
+**"This directory can not be written! Please choose another directory!" during install**
+The install path (`C:\Program Files\...` by default) needs administrator
+rights. The installer should prompt for this itself via a UAC dialog before
+this screen even appears — see step 2.3 above. If you got here without
+seeing that prompt, either go back and re-launch as administrator, or click
+**Browse** here and pick a folder you already have write access to instead
+(e.g. `C:\Users\<you>\iDART`).
 
 **Installer or app won't start / GUI looks broken**
 This build targets a modern 64-bit Java 8 runtime specifically — confirm

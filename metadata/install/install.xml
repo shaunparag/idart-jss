@@ -23,6 +23,11 @@
 		</authors>
 		<url>http://www.cell-life.org/dispense-idart</url>
 		<javaversion>1.5</javaversion>
+		<!-- Default install path is under C:\Program Files on Windows, which a
+		     non-elevated process can't write to under UAC. This makes the
+		     installer relaunch itself elevated (Windows only) instead of
+		     failing with "This directory can not be written!". -->
+		<run-privileged />
 	</info>
 	<guiprefs height="600" resizable="yes" width="800">
 		<laf name="metouia">
