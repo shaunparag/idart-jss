@@ -25,6 +25,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
 /**
  */
 @Entity
@@ -40,8 +43,14 @@ public class PackagedDrugs {
 	@JoinColumn(name = "parentPackage")
 	private Packages parentPackage;
 
+	// Older data can reference a stock row that no longer exists (nothing in
+	// the schema enforces this relationship - see the missing FK constraint).
+	// Without this, Hibernate throws ObjectNotFoundException instead of
+	// returning null, even though callers (e.g. PatientTreatmentHistory)
+	// already null-check getStock() and handle it correctly.
 	@ManyToOne
 	@JoinColumn(name = "stock")
+	@NotFound(action = NotFoundAction.IGNORE)
 	private Stock stock;
 
 	private char modified;
