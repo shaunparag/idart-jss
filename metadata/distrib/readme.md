@@ -1,5 +1,5 @@
 ===================
-iDART 3.8.0
+iDART 3.8.1
 ===================
 
 iDART is a software solution designed to support the dispensing of ARV drugs in the public health care sector. It supports pharmacists in their important role of dispensing accurately to an increasing number of patients whilst still being able to engage and assist the patient.
