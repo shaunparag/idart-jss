@@ -29,7 +29,13 @@
 		     failing with "This directory can not be written!". -->
 		<run-privileged />
 	</info>
-	<guiprefs height="600" resizable="yes" width="800">
+	<!-- height was 600: IzPack stacks each panel's rows top-to-bottom sized
+	     to their content, so on a display with larger Windows font/DPI
+	     scaling the finish screen's rows (message + uninstaller path +
+	     "generate script" button) can add up to more than 600px and the
+	     button overlaps the row above it. Extra height gives that slack;
+	     resizable="yes" means this only affects the starting size. -->
+	<guiprefs height="720" resizable="yes" width="800">
 		<laf name="metouia">
 			<os family="unix" />
 		</laf>
