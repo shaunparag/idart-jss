@@ -1,0 +1,203 @@
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"><title>15.1. Creating Patient ARV Packages</title><link rel="stylesheet" type="text/css" href="iDARTmanual.css"><meta name="generator" content="DocBook XSL Stylesheets Vsnapshot"><link rel="home" href="index.html" title="iDART User Guide"><link rel="up" href="ch15.html" title="Chapter 15. Packaging and Dispensing"><link rel="prev" href="ch15.html" title="Chapter 15. Packaging and Dispensing"><link rel="next" href="ch15s02.html" title="15.2. Pre-packaging for patients at this Pharmacy"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="sect1"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="id1390"></a>15.1. Creating Patient ARV Packages</h2></div></div></div><p>
+				This section describes how to create monthly ARV
+				packages for patients according to their prescriptions.
+				Dispensing the package to the patient, either directly
+				from the pharmacy or via a distribution clinic, is
+				covered in the two subsequent sections. From the main
+				screen, select
+				<span class="strong"><strong>
+					Stock &amp; Dispensing
+				</strong></span>
+				. This will open the Stock Control screen - select
+				<span class="strong"><strong>
+					Make Up Drug Packages For Patients
+				</strong></span>
+				. This will open the Make Up ARV Packages for Patients
+				screen, which is shown below:
+			</p><p>
+				<span class="inlinemediaobject"><img src="images/MakeUpARVPackages.png" align="middle" alt="MakeUpARVPackages.png"></span>
+			</p><p>
+				First, check that the correct dispensing mode is
+				selected. You can choose one of:
+			</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+						<span class="strong"><strong>
+							I am creating packages for later pickup
+						</strong></span>
+						if the drugs will be picked up at another time,
+						or at a distribution clinic. The date the
+						package was packed will be recorded, but not the
+						date it left the pharmacy - this will be
+						recorded when the package leaves the pharmacy to
+						a patient or to a distribution clinic. See
+						Dispensing from a Remote Clinic. You will not
+						need to record the adherence information on this
+						screen if you are doing this type of dispensing.
+					</li><li class="listitem">
+						<span class="strong"><strong>
+							I am dispensing directly to patients
+						</strong></span>
+						if the patient will take the package now, and
+						today's date should be recorded as the date the
+						package was packed, left the pharmacy and was
+						picked up by the patient. The system will not
+						record any further tracking information about
+						this package as it will be considered dispensed
+						to the patient. You will be able to record
+						adherence information for the patient on this
+						screen if you are doing this kind of dispensing.
+					</li></ul></div><p>
+				Both the above options will cause labels for all the
+				drugs in the packages to be printed. If you choose
+				Create Package for Later, a package cover label will
+				also be printed.
+			</p><p>
+				Select a distribution clinic from the drop-down list.
+				This will bring up a list of all the patients for whom
+				ARV packages should be made up. The list includes all
+				patients at the selected clinic who have current
+				prescriptions.
+			</p><p>
+				Select a patient from the list to start making up a
+				package for that patient. If you are looking for a
+				specific patient, try using the search bar (the text box
+				directly below the patient list). Typing a character or
+				a few characters in this box will hide the Patient IDs
+				in the list that do not contain the character(s) you
+				have typed.
+			</p><p>
+				Clicking a Patient ID in the list of waiting patients
+				will cause information about the patient to come up in
+				the Patient Information area, and information about the
+				patient's current prescription to come up in the
+				Prescription Information area. The drugs that a package
+				for this patient should contain will be shown in red in
+				the drugs table. At this point, also be aware of notes
+				displayed for the patient. If the patient is a child,
+				the system will warn you by placing a small icon showing
+				a child next to the age field. This icon looks like
+				this:
+			</p><p>
+				<span class="inlinemediaobject"><img src="images/Child_50x43.jpg" align="middle" alt="Child_50x43.jpg"></span>
+			</p><p>
+				You need to dispense at least one of the drugs in the
+				list, but you do not have to dispense them all. To
+				dispense drugs:
+			</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+						You need to select how many months' or weeks'
+						supply this package represents from the
+						drop-down list. This will allow the system to
+						pre-calculate the number of pills to dispense.
+						By default, these will come from the batch that
+						will expire soonest.
+					</li><li class="listitem">
+						When the system records a patient as having
+						received a package, the patient's next
+						appointment date is set according to how many
+						months or weeks supply of ARV drugs the package
+						contains. If you are dispensing directly to
+						patients, the next appointment date will
+						therefore be recorded from this screen. In this
+						case, you can set the next appointment date in
+						the Patient Information section. If you are
+						creating packages for later pickup, the next
+						appointment date will be set automatically when
+						the package is scanned out as it is collected by
+						the patient.
+					</li><li class="listitem"><p class="simpara">
+						The table of
+						<span class="strong"><strong>
+							Drugs To Dispense in This Package
+						</strong></span>
+						will automatically be populated, as will the
+						<span class="strong"><strong>
+							Pill Count &#8211; Last Package
+						</strong></span>
+						table. You need to:
+					</p><div class="orderedlist"><ol class="orderedlist" type="a"><li class="listitem">
+								Fill in accumulated units the patient
+								returns with. This information will be
+								used to calculate the patient's
+								adherence. To fill in a value, click the
+								cell in the Accum column of the
+								<span class="strong"><strong>
+									Pill Count &#8211; Last Package
+								</strong></span>
+								table, and type the value. The adherence
+								percentage will be caulculated
+								immediately
+							</li><li class="listitem">
+								Check the total units in hand for each
+								drug, which will appear in the In Hand
+								column of the
+								<span class="strong"><strong>
+									Drugs To Dispense in This Package
+								</strong></span>
+								table. This can have two values, which
+								you can choose by clicking in the column
+								and selecting the value from the
+								dropdown list. You can either record
+								that the patient has left with the
+								number of units you dispensed as well as
+								the number of units accumulated (e.g. 1
+								pack of 60 pills + 2 pills accumulated),
+								or that you did not give the accumulated
+								units back to the patient for whatever
+								reason, and that they left with just the
+								quantity you dispensed (e.g. 1 pack of
+								60 pills).
+							</li><li class="listitem">
+								If desired, change the number of labels
+								to print by clicking the cell in the
+								labels column, and changing the value to
+								the desired number of labels. You can
+								then edit the batch to dispense from, as
+								well as the quantity to dispense, by
+								clicking the row containing the drug
+								information. This will bring up the
+								screen below:
+							</li></ol></div></li></ul></div><p>
+				<span class="inlinemediaobject"><img src="images/BatchInfo.png" align="middle" alt="BatchInfo.png"></span>
+			</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+						You can change the quantity (in pills) to
+						dispense. To do this, click the row of the batch
+						you wish to dispense from, under the column Qty
+						to Dispense, and type in the number of pills.
+						The drugs are ordered by expiry date, with the
+						batch that will expire soonest listed first. You
+						can also select how many drug labels you wish to
+						print, from the drop-down list in the Labels to
+						Print column.To maintain correct stock levels,
+						it's important that the containers you put in to
+						the package do in fact come from the batch you
+						have selected.
+					</li><li class="listitem">
+						Select
+						<span class="strong"><strong>
+							Add Drug to Package
+						</strong></span>
+						to save the information you have entered. Select
+						<span class="strong"><strong>Cancel</strong></span>
+						if you do not wish to add this drug to the
+						package at this time.
+					</li></ul></div><p>
+				Once you have specified quantities for each drug you
+				wish to add, you should specify whether you want the
+				dosage quantities on the label to be left blank (eg. for
+				paediatric patients where you want to fill in this
+				information by hand) and also whether a script summary
+				label should be printed. Do this by selecting your
+				choices (Yes or No) below the drugs table.
+			</p><p>
+				To create the drug package and print the relevant
+				labels, select
+				<span class="strong"><strong>Create Package</strong></span>
+				. If you do not want to create a package at this time,
+				you can choose
+				<span class="strong"><strong>Close</strong></span>
+				to close the Make Up ARV Packages for Patients screen.
+				If you make a mistake with a package and want to redo
+				it, select
+				<span class="strong"><strong>Redo an ARV Package</strong></span>
+				. For more information about this, please see Stock,
+				Prescription and Package Deletions in this section.
+			</p></div></body></html>
