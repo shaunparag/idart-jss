@@ -134,6 +134,8 @@
 			<parsable targetfile="$INSTALL_PATH/uninstall.bat" type="plain"
 				os="windows" />
 			<parsable targetfile="$INSTALL_PATH/go.bat" type="plain" os="windows" />
+			<parsable targetfile="$INSTALL_PATH/help.bat" type="plain"
+				os="windows" />
 			<parsable targetfile="$INSTALL_PATH/launcher.bat" type="plain"
 				os="windows" />
 			<parsable targetfile="$INSTALL_PATH/uninstall.sh" type="shell"
