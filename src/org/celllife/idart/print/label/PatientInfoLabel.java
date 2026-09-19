@@ -169,8 +169,16 @@ public class PatientInfoLabel implements Printable, DefaultLabel {
 		xPos = xPos + (60 + 20);
 		g2d.setFont(new Font("Arial", java.awt.Font.PLAIN, 10));
 		fm = g2d.getFontMetrics();
+		// Available width was previously just "w - 35", which measures from
+		// the label's left edge rather than from xPos (where this text
+		// actually starts, well right of the left edge). That overstated how
+		// much room the name had by about xPos's own offset, so long names
+		// were judged "short enough" and printed past the label's right
+		// border instead of being compressed. Measure from xPos to the
+		// right border instead, with a small margin so text doesn't touch it.
+		int nameAreaWidth = (x + w) - xPos - 5;
 		String compressedName = PrintLayoutUtils
-				.buildWindowsCompressedLabelName(w - 35, fm, firstname, surname);
+				.buildWindowsCompressedLabelName(nameAreaWidth, fm, firstname, surname);
 		g2d.drawString(id, xPos, currentHeight);
 		g2d.drawString(compressedName, xPos, currentHeight + 12);
 		try {
