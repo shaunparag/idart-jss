@@ -146,9 +146,14 @@ public class DataQuality extends GenericOthersGui {
 								.getSelection();
 						DataQualityInterface selectedElement = (DataQualityInterface) selection
 								.getFirstElement();
-						DataQualityInterface dqr = selectedElement;
 
-						cmdRunDataQualityReport(dqr);
+						if (selectedElement == null) {
+							showMessage(MessageDialog.WARNING, "No Report Selected",
+									"Please select a data quality report from the list first.");
+							return;
+						}
+
+						cmdRunDataQualityReport(selectedElement);
 					}
 				});
 		btnRunData

@@ -971,7 +971,7 @@ public class StockCenterInfo extends GenericFormGui {
 				txtStockCenterName.setFocus();
 				return false;
 			}
-			if (localStockCenter.getId() == 0)  {
+			if (localStockCenter.isNew())  {
 
 				missing.setText("No Pharmacy selected");
 				missing

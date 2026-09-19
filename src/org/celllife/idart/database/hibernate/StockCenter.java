@@ -65,6 +65,17 @@ public class StockCenter {
 		this.id = id;
 	}
 
+	/**
+	 * Whether this StockCenter has ever been saved to the database. Unlike
+	 * getId() == 0, this is safe to call on a freshly-constructed, unsaved
+	 * instance: the id field is a nullable Integer (auto-unboxed to 0 by
+	 * getId() only once it's actually set), so a never-saved instance has a
+	 * null id, not a zero one.
+	 */
+	public boolean isNew() {
+		return id == null;
+	}
+
 	public StockCenter(String stockCenterName, Set<Stock> stock) {
 
 		this.stockCenterName = stockCenterName;
