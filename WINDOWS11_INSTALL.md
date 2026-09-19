@@ -148,7 +148,152 @@ avoided; see the notes in `build.xml`). Do not install a newer JRE (11, 17,
 4. After logging in you should see the main dashboard (General Admin,
    Patient Admin, Stock & Dispensing, Reports).
 
-## 4. Troubleshooting
+## 4. Migrating data from an older iDART installation
+
+This covers moving real data from an existing iDART deployment (e.g. an
+old PostgreSQL 9.x install) into a fresh install of this build — a
+different task from the fresh install in sections 1–3, and one that
+touches real patient data, so treat every step here as production work.
+
+### 4.1 Get the old server's own pg_dump
+
+Use the *old* server's own `pg_dump.exe`, not the new server's, even if
+both are installed on the same machine — a newer client dumping an older
+server works fine, but the executable's version still has to actually
+exist at the path you point at.
+
+```
+set PGPASSWORD=<old-db-password>
+"C:\Program Files\PostgreSQL\<old-version>\bin\pg_dump" --no-owner --no-privileges -h localhost -p <old-port> -U postgres <old-db-name> > old_full.sql
+```
+Find `<old-version>` via `dir "C:\Program Files\PostgreSQL"`, and confirm
+`<old-port>` in that version's `data\postgresql.conf` if it isn't the
+default 5432.
+
+A few warnings are expected and harmless when this gets restored:
+- `SET default_with_oids = ...` — removed from PostgreSQL in version 12;
+  every line like this throws "unrecognized configuration parameter" on
+  restore, but doesn't stop anything or lose data (this app never relied
+  on table OIDs).
+- Restoring a custom-format dump instead shows the same non-issue as
+  `restoring tables WITH OIDS is not supported anymore`.
+- `schema "public" already exists` (once, right at the start of a
+  restore into a freshly created database) — every new Postgres database
+  already has a `public` schema by default.
+
+### 4.2 Restore into a fresh, separate database on the new server
+
+Create a new, distinct database — don't reuse one from an earlier
+partial attempt — and restore into it:
+```
+"C:\Program Files\PostgreSQL\<new-version>\bin\createdb" -h localhost -p <new-port> -U postgres pharm_migrated
+"C:\Program Files\PostgreSQL\<new-version>\bin\psql" -h localhost -p <new-port> -U postgres -d pharm_migrated -f old_full.sql 2> restore_errors.log
+```
+pgAdmin4 works just as well (register a connection to the new server,
+Create → Database, then Restore… on it) and avoids hunting down exact
+paths/ports for this half — only the old-server dump in 4.1 needs the
+old version's own binary specifically.
+
+Check `restore_errors.log` (or pgAdmin4's process log) afterward — you
+should see only the warnings from 4.1. Anything else is worth
+investigating before continuing.
+
+### 4.3 Point the app at the migrated database
+
+There's no in-app "change database" menu — the connection settings
+screen only appears automatically, when the app can't reach its
+currently configured database at all. To reach it deliberately:
+1. Stop the *new* PostgreSQL service (Services app →
+   `postgresql-x64-<new-version>` → Stop).
+2. Launch iDART — it should fail to connect and open the **Database
+   Connection Settings** wizard page instead of the login screen.
+3. Start the PostgreSQL service again (the wizard tests the connection
+   live as you type, so it needs the server reachable — don't close the
+   wizard while doing this).
+4. Set **Database name** to your migrated database (e.g.
+   `pharm_migrated`), confirm host/username, and enter the password.
+5. Finish the wizard.
+
+This same wizard also offers to *create* a fresh database if it finds
+one empty — it checks for existing rows in the `users` table first, so
+a populated migrated database is correctly detected as already set up
+and this step is skipped automatically. It will not overwrite anything.
+
+### 4.4 Liquibase checksum validation failure on a real migration
+
+If you hit the `ValidationFailedException` error described in
+Troubleshooting below, but you're certain the database is a legitimate
+migration (not an accidental point-at-an-old-deployment mistake covered
+by that entry), check `idart.log` in the install folder for the specific
+changeset IDs — the error looks like:
+```
+Validation Failed:
+     2 change sets check sum
+          org/celllife/idart/database/changelog-3.8.xml::3.8.2::simon@cell-life.org is now: 3:...
+```
+This happens when a changeset's checksum was computed against an older,
+byte-different-but-functionally-identical copy of a file it references
+(changesets defined via `sqlFile`/`loadData` checksum the *referenced*
+file's exact bytes, not just its effect) — in practice this has traced
+back to formatting differences from this codebase's original SVN-to-git
+import, not a real content change. Verify before dismissing it: compare
+what the referenced file would actually do against what's already in the
+target database (e.g. for a function-altering changeset, compare its SQL
+against the live function definition).
+
+Once confirmed benign, accept the current files as correct for just
+those specific rows. This does not re-run them or touch any data — only
+Liquibase's own bookkeeping table:
+```sql
+UPDATE databasechangelog
+SET md5sum = NULL
+WHERE filename = '<file from the error>'
+  AND id IN ('<id1>', '<id2>');
+```
+Relaunch the app afterward.
+
+### 4.5 Verify
+
+Row-count a handful of clinically important tables on both the old and
+new databases and compare:
+```sql
+SELECT 'patient' AS table_name, COUNT(*) FROM patient
+UNION ALL SELECT 'prescription', COUNT(*) FROM prescription
+UNION ALL SELECT 'package', COUNT(*) FROM package
+UNION ALL SELECT 'stock', COUNT(*) FROM stock
+UNION ALL SELECT 'clinic', COUNT(*) FROM clinic
+UNION ALL SELECT 'users', COUNT(*) FROM users;
+```
+A small gap (new side lower) on high-churn tables like `prescription`/
+`package` most often just means the old server kept taking real activity
+after the dump was taken — re-run the old-side count to confirm it's
+still climbing, rather than assuming data was lost in the restore.
+
+**For the real cutover** (not a test/rehearsal run): repeat this whole
+process with a dump taken at the actual switch-over moment, with
+dispensing paused on the old system for the few minutes between taking
+the dump and bringing the new install online — anything entered in that
+gap won't be in the dump.
+
+### 4.6 A note on this specific deployment's existing data
+
+Worth knowing before assuming something's broken post-migration: this
+deployment's data has exactly **one** clinic record, and both it and the
+`nationalclinics` reference table are leftover South African seed data
+from the original Cell-Life product (South African district/metro
+municipality names; a South African trade union as the clinic name) —
+not something the migration dropped, and not specific to any one
+migration attempt. Adding real clinics is a normal **General Admin → Add
+Clinic** task (only the clinic name is actually required — the
+province/district/facility fields can be left blank). Making an added
+clinic *selectable at login* additionally needs `downReferralMode` in
+`idart.properties` set to `online` — which also enables a real
+down-referral/distribution workflow (a main pharmacy scanning packages
+out to satellite clinics) across the Stock Control and
+Package-to-Patient screens, so confirm that operating model actually
+fits before switching it just to unlock the login dropdown.
+
+## 5. Troubleshooting
 
 **"JAVA_HOME is not set and javaw.exe was not found on PATH"**
 `launcher.bat` couldn't find a Java install. Recheck section 1.1 — either
@@ -203,25 +348,23 @@ rights to create tables in the target database.
 
 **Error dialog titled "iDART: Error", "Error while updateing the database:
 liquibase.exception.ValidationFailedException"**
-This means the database you pointed the installer at is **not** a fresh,
-empty one — it already has iDART migration history in it (`SELECT * FROM
-databasechangelog;` will show existing rows if so), most likely because
-it's an existing database from an older iDART deployment rather than a
-new one created per section 1.2. Liquibase records a checksum for every
-migration it's already run, and several of the migration files in this
-build were fixed to work around bugs that only show up against a modern
-PostgreSQL — so their content, and therefore their checksum, no longer
-matches what an old database recorded originally. This is expected
-behavior, not a bug to work around: **use a genuinely fresh, empty
-database** (section 1.2 step 8) to get the app running.
+For a fresh install (this guide, sections 1–3): this means the database
+you pointed the installer at is **not** a fresh, empty one — it already
+has iDART migration history in it (`SELECT * FROM databasechangelog;`
+will show existing rows if so), most likely because it's an existing
+database from an older iDART deployment rather than a new one created
+per section 1.2. **Use a genuinely fresh, empty database** (section 1.2
+step 8) to get the app running.
 
-If you actually need an existing iDART deployment's historical data
-carried into this build, that's a real but separate task from a fresh
-install — it needs a backup of that database taken first, and a careful
-review of what the migration would actually do against that specific
-(likely older and possibly manually modified) schema before running
-anything against it. Don't attempt it by just pointing the installer at
-it and working through wizard errors.
+If you're deliberately migrating an older deployment's real data, see
+section 4 for the full procedure — this same error can show up
+legitimately even on a correct migration; section 4.4 covers the actual
+cause (a changeset checksum mismatch tied to how a couple of migration
+files were imported into this repository years ago, not a data problem)
+and the fix. Don't attempt a real migration by just pointing the
+installer at an old database and working through wizard errors as they
+come — section 4 exists because that approach doesn't give you a way to
+tell a benign checksum mismatch apart from a real one.
 
 **"This directory can not be written! Please choose another directory!" during install**
 The install path (`C:\Program Files\...` by default) needs administrator
