@@ -3,6 +3,14 @@
 This is a step-by-step guide to a fresh install on a Windows 11 machine. It
 assumes no existing iDART installation and no existing PostgreSQL server.
 
+**Known-good file set**, if you just want exact versions to grab without
+reading the reasoning below: Temurin **JDK 8** (any `8u5xx` build, Windows,
+x64, `.msi`) and **PostgreSQL 18** (Windows x64 installer). As of this
+writing, `OpenJDK8U-jdk_x64_windows_hotspot_8u504b01.msi` and
+`postgresql-18.6-3-windows-x64.exe` are the specific files in current use
+for new installs — if you already have those two files, skip straight to
+section 2.
+
 ## 1. Prerequisites
 
 ### 1.1 Install a 64-bit Java 8 runtime
@@ -13,27 +21,49 @@ newer Java version risks breaking them in ways this project deliberately
 avoided; see the notes in `build.xml`). Do not install a newer JRE (11, 17,
 21, ...) instead — it has not been tested against this app.
 
-1. Download and install **Eclipse Temurin 8 (JRE or JDK), Windows x64** from
-   [adoptium.net](https://adoptium.net/). Pick the installer (`.msi`), and
-   during setup enable **"Set JAVA_HOME variable"** and **"JavaSoft
-   (Oracle) registry keys"** if offered — this saves the manual step below.
-2. If `JAVA_HOME` wasn't set automatically, set it yourself:
+1. Go to [adoptium.net](https://adoptium.net/) to download **Temurin,
+   version 8, Windows, x64, JDK (or JRE), `.msi`**.
+   **Do not just click the front-page download button** — it defaults to
+   whatever the latest release currently is (21, 25, ...), not 8. Use the
+   version selector/dropdown on the page and explicitly change it to
+   **8** before downloading. The correct file's name contains `8u` — e.g.
+   `OpenJDK8U-jdk_x64_windows_hotspot_8u504b01.msi`. If the filename says
+   `jdk-11`, `jdk-17`, `jdk-21`, `jdk-25`, or anything other than `8u...`,
+   it's the wrong one. This exact mistake has already caused the app to
+   silently quit on launch with no error dialog and no log file (see
+   Troubleshooting) — it's an easy trap on that site, so it's worth
+   double-checking the filename before installing.
+2. Run the `.msi`, and during setup enable **"Set JAVA_HOME variable"**
+   and **"JavaSoft (Oracle) registry keys"** if offered — this saves the
+   manual step below.
+3. If `JAVA_HOME` wasn't set automatically, set it yourself:
    - Search Windows for **"Edit the system environment variables"** → **Environment Variables**.
    - Under **System variables**, click **New**, set:
      - Variable name: `JAVA_HOME`
-     - Variable value: the install path, e.g. `C:\Program Files\Eclipse Adoptium\jdk-8.0.XXX-hotspot`
+     - Variable value: the install path, e.g. `C:\Program Files\Eclipse Adoptium\jdk8u504-b01` (the folder name will contain `8u`, not a bare major version number)
    - Click OK on all dialogs.
-3. Verify: open a new Command Prompt and run `echo %JAVA_HOME%` — it should
-   print the path. If `launcher.bat` can't find Java, it will now fall back
-   to PATH and, failing that, print a clear error rather than failing
-   silently.
+4. Verify — this matters even if step 2 auto-set things, because it's the
+   only step that catches "found *a* Java, just the wrong version" rather
+   than "found no Java at all": open a **new** Command Prompt window (has
+   to be new to see an updated variable) and run:
+   - `echo %JAVA_HOME%` — should print a path containing `8u`, not
+     `jdk-11`/`17`/`21`/`25`.
+   - `java -version` — the first line should say `1.8.0_...`.
+
+   If `launcher.bat` can't find Java at all, it falls back to PATH and,
+   failing that, prints a clear error rather than failing silently — but
+   a *wrong version* of Java being found is a different, silent failure
+   that this verification step is what actually catches.
 
 ### 1.2 Install PostgreSQL
 
 1. Download the Windows installer from
-   [postgresql.org/download/windows](https://www.postgresql.org/download/windows/).
-   Any recent version (14+) works — verified in testing against both
-   PostgreSQL 16 and 18.
+   [postgresql.org/download/windows](https://www.postgresql.org/download/windows/)
+   — select the **Windows x86-64** installer. Any recent version (14+)
+   works — verified in testing against both PostgreSQL 16 and 18 — and
+   the team currently standardizes on **PostgreSQL 18**
+   (`postgresql-18.6-3-windows-x64.exe` as of this writing) for new
+   installs.
 2. Run the installer. When prompted for a password for the `postgres`
    superuser, set one and **remember it exactly** — you'll need it again
    in step 4 below and in the iDART installer later, and there's no way
@@ -299,6 +329,33 @@ fits before switching it just to unlock the login dropdown.
 `launcher.bat` couldn't find a Java install. Recheck section 1.1 — either
 set `JAVA_HOME` correctly or make sure `javaw.exe` (inside the JRE's `bin`
 folder) is on your PATH.
+
+**App window flashes briefly (or nothing visible happens at all) and then quits — no error dialog, no `idart.log` created**
+This is a *different* failure from the one above: Java was found and the
+app started launching, but died very early — before logging even
+initialized. Every occurrence of this so far has traced back to the
+**wrong major version of Java** being installed, most often JDK 21 or 25
+instead of 8, from grabbing whatever adoptium.net's front-page button
+defaults to instead of explicitly selecting version 8 (section 1.1). The
+app always launches via windowless `javaw.exe`, so a Java-version
+incompatibility has nowhere to display itself — it just silently dies.
+
+To confirm and fix:
+1. `dir "C:\Program Files\Eclipse Adoptium"` — if the folder name is
+   `jdk-11...`, `jdk-17...`, `jdk-21...`, `jdk-25...`, etc. instead of
+   `jdk8u...`, that's the cause. Install the correct version per
+   section 1.1 (you don't need to uninstall the wrong one — just install
+   8 alongside it and point `JAVA_HOME` at that folder instead).
+2. Confirm `JAVA_HOME` was actually updated to the correct folder in a
+   **new** Command Prompt window — `echo %JAVA_HOME%`.
+3. If both check out and it's still happening, get a definitive error
+   message instead of guessing further: copy `launcher.bat` to
+   `launcher-debug.bat` in the install folder, change `javaw.exe` to
+   `java.exe` in the `start` line near the bottom, then run
+   `.\launcher-debug.bat org.celllife.idart.start.PharmacyApplication`
+   from a Command Prompt window opened in that folder (not by
+   double-clicking the shortcut). `java.exe` keeps a console attached, so
+   whatever's actually failing prints there instead of vanishing.
 
 **"Connection to localhost:5432 refused" (or similar) on the installer's Database Connection Settings screen**
 - Most often: PostgreSQL isn't running, or is listening on a different
