@@ -85,12 +85,42 @@ public class PharmacyApplication {
 		log.info("*********************");
 		log.info("");
 
+		setWindowsDpiAware();
 		createDisplay();
 		openSplash();
 		loadConstants();
 		performStartupChecks();
 		doInitialisationTasks();
 		launch(args);
+	}
+
+	/**
+	 * Declares this process DPI-aware to Windows, matching the "System"
+	 * high-DPI override this app previously needed set by hand on
+	 * javaw.exe (Properties &gt; Compatibility &gt; "Override high DPI
+	 * scaling behavior" &gt; System) -- without it, Java 8's javaw.exe has
+	 * no DPI-awareness manifest of its own, so Windows bitmap-stretches
+	 * the whole UI, and this app's screens all use hardcoded absolute
+	 * pixel layouts with no scale-awareness of their own, so anything
+	 * other than System-level awareness renders them the wrong size.
+	 * Must run before createDisplay() -- Windows locks in a process's
+	 * DPI-awareness at first window creation. Uses reflection against
+	 * SWT's own internal Win32 binding (already vendored, no new
+	 * dependency) rather than a direct import, since this source file
+	 * also compiles against the Linux/GTK SWT build, which has no win32
+	 * package at all.
+	 */
+	private static void setWindowsDpiAware() {
+		if (!System.getProperty("os.name", "").toUpperCase().startsWith("WINDOWS")) {
+			return;
+		}
+		try {
+			Class<?> os = Class.forName("org.eclipse.swt.internal.win32.OS");
+			os.getMethod("SetProcessDPIAware").invoke(null);
+			log.debug("Declared process DPI-aware to Windows.");
+		} catch (Exception e) {
+			log.warn("Unable to declare process DPI-aware; Windows will use its default scaling for this process.", e);
+		}
 	}
 
 	private static void createDisplay() {
