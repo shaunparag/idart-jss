@@ -44,10 +44,13 @@ avoided; see the notes in `build.xml`). Do not install a newer JRE (11, 17,
    - Click OK on all dialogs.
 4. Verify — this matters even if step 2 auto-set things, because it's the
    only step that catches "found *a* Java, just the wrong version" rather
-   than "found no Java at all": open a **new** Command Prompt window (has
+   than "found no Java at all": open a **new** terminal window (has
    to be new to see an updated variable) and run:
-   - `echo %JAVA_HOME%` — should print a path containing `8u`, not
-     `jdk-11`/`17`/`21`/`25`.
+   - `echo %JAVA_HOME%` in Command Prompt, or `$env:JAVA_HOME` in
+     PowerShell (Windows 11's default — don't mix them up: `%JAVA_HOME%`
+     typed into PowerShell just echoes that literal text back and looks
+     like the variable isn't set even when it is) — should print a path
+     containing `8u`, not `jdk-11`/`17`/`21`/`25`.
    - `java -version` — the first line should say `1.8.0_...`.
 
    If `launcher.bat` can't find Java at all, it falls back to PATH and,
@@ -344,15 +347,29 @@ app always launches via windowless `javaw.exe`, so a Java-version
 incompatibility has nowhere to display itself — it just silently dies.
 
 To confirm and fix:
-1. `dir "C:\Program Files\Eclipse Adoptium"` — if the folder name is
-   `jdk-11...`, `jdk-17...`, `jdk-21...`, `jdk-25...`, etc. instead of
-   `jdk8u...`, that's the cause. Install the correct version per
-   section 1.1 (you don't need to uninstall the wrong one — just install
-   8 alongside it and point `JAVA_HOME` at that folder instead).
-2. Confirm `JAVA_HOME` was actually updated to the correct folder in a
-   **new** Command Prompt window — `echo %JAVA_HOME%`.
-3. If both check out and it's still happening, get a definitive error
-   message instead of guessing further: copy `launcher.bat` to
+1. `dir "C:\Program Files\Eclipse Adoptium"` — if there's a folder other
+   than `jdk-8...` in there (e.g. `jdk-21...`, `jdk-25...`), that's the
+   cause.
+2. Confirm what `JAVA_HOME` actually resolves to in a **new** terminal
+   window (has to be new to see a just-changed value) — in PowerShell
+   (the default on Windows 11) that's `$env:JAVA_HOME`, **not**
+   `echo %JAVA_HOME%` (that's `cmd.exe` syntax; run in PowerShell it just
+   echoes the literal text back and looks like JAVA_HOME is unset even
+   when it isn't). `where.exe java` is also worth checking — it lists
+   every `java.exe` on PATH in resolution order, which matters because
+   some launch paths (a desktop shortcut, double-clicking a `.jar`) can
+   go through Windows' file association instead of `JAVA_HOME`.
+3. Point `JAVA_HOME` at the `jdk-8...` folder (section 1.1). If more than
+   one JDK is installed, this is sometimes not enough by itself — confirmed
+   on real hardware, a machine with both 25 and 8 installed kept launching
+   under 25 even after correcting `JAVA_HOME`, most likely via a `.jar`
+   file association or shortcut that a newer JDK's installer had claimed
+   independently of `JAVA_HOME`. If retargeting `JAVA_HOME` doesn't fix it,
+   the reliable fallback is to uninstall every installed JDK and install
+   only Temurin 8 — no ambiguity left for anything to resolve to the wrong
+   one.
+4. If it's still happening after that, get a definitive error message
+   instead of guessing further: copy `launcher.bat` to
    `launcher-debug.bat` in the install folder, change `javaw.exe` to
    `java.exe` in the `start` line near the bottom, then run
    `.\launcher-debug.bat org.celllife.idart.start.PharmacyApplication`
