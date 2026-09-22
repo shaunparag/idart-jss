@@ -273,7 +273,7 @@ public class PAVASManager {
 		@SuppressWarnings("unchecked")
 		List<Episode> result = session
 		.createQuery(
-				"from Episode as e where e.patient=:p and e.startDate<:thedate)")
+				"from Episode as e where e.patient=:p and e.startDate<:thedate")
 				.setInteger("p", p).setDate("thedate", thedate).list();
 		return result;
 	}

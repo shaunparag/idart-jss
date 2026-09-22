@@ -139,7 +139,7 @@ public class TemporaryRecordsManager {
 			Session sess) throws HibernateException {
 		List<AdherenceRecord> adhList = sess
 		.createQuery(
-		"from AdherenceRecord as ad where order by ad.id asc")
+		"from AdherenceRecord as ad order by ad.id asc")
 		.setMaxResults(10).list();
 
 		return adhList;
@@ -158,7 +158,7 @@ public class TemporaryRecordsManager {
 	throws HibernateException {
 		List<DeletedItem> delList = sess
 		.createQuery(
-		"from DeletedItem as del where order by del.id asc")
+		"from DeletedItem as del order by del.id asc")
 		.setMaxResults(10).list();
 
 		return delList;
