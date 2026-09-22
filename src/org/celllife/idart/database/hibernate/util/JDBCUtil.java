@@ -59,6 +59,16 @@ public class JDBCUtil {
 		url = iDartProperties.hibernateConnectionUrl;
 		username = iDartProperties.hibernateUsername;
 		password = iDartProperties.hibernatePassword;
+		// Discard any connection cached under the old url/username/password
+		// so the next currentSession() call is guaranteed to open a fresh
+		// one against the settings just applied here, rather than silently
+		// reusing a stale connection left behind by a caller that opened
+		// one without closing it.
+		try {
+			closeJDBCConnection();
+		} catch (SQLException e) {
+			log.warn("Error closing stale JDBC connection during rebuild.", e);
+		}
 	}
 
 	/**

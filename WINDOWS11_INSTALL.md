@@ -404,14 +404,18 @@ a permissions error, confirm the database user (`postgres` by default) has
 rights to create tables in the target database.
 
 **Database Connection Settings wizard "hangs"/does nothing on Finish, even after retyping a different database name/password**
-If you already clicked Finish once with the wrong details in the *same app
-session* (no full restart in between), the app can silently keep using its
-first connection attempt instead of your corrected one — it caches the
-database connection per-process and only opens a fresh one if none is
-cached yet, so a retry within the same running app can be ignored even
-though the wizard fields show your new input. **Fully close and relaunch
-the app** (not just retry in the wizard) before trying the corrected
-connection details again.
+On a jar built from a current checkout, this shouldn't happen anymore: two
+contributing issues have been fixed. First, `JDBCUtil` used to cache a
+database connection per-thread and never discard it when the connection
+settings changed, so a stale connection could in principle survive a
+retry; `JDBCUtil.rebuild()` now closes any cached connection whenever
+settings are rebuilt. Second, and more likely the actual cause in
+practice: clicking Finish writes `idart.properties` into the install
+folder, which — before the install-folder permissions fix described
+above — a non-elevated app process couldn't do, so Finish could silently
+fail to do anything useful. If you still hit this on a current build,
+check `idart.log` for the real error rather than assuming it's this same
+issue recurring.
 
 **Error dialog titled "iDART: Error", "Error while updateing the database:
 liquibase.exception.ValidationFailedException"**
