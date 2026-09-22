@@ -1,11 +1,31 @@
 <processing>
 
+	<!-- The default install path is under C:\Program Files, which a normal
+	     (non-elevated) user account cannot write to. The app itself runs
+	     unelevated after install and needs to write idart.log and other
+	     files directly into the install folder, so grant regular users
+	     write access to it here, while this installer is still running
+	     elevated (see <run-privileged /> in install.xml). Granting to the
+	     "Authenticated Users" well-known SID (rather than the "Users"
+	     group name) avoids issues on non-English Windows where the
+	     built-in group's display name is localized. -->
+	<job name="Granting write access on the install folder" >
+		<os family="windows" />
+		<executefile name="icacls">
+			<arg>$INSTALL_PATH</arg>
+			<arg>/grant</arg>
+			<arg>*S-1-5-11:(OI)(CI)M</arg>
+			<arg>/T</arg>
+			<arg>/C</arg>
+		</executefile>
+	</job>
+
 	<job name="Encrypting Configuration Data">
-        <executefile name="$JAVA_HOME/bin/java">  
-            <arg>-cp</arg> 
-            <arg>$INSTALL_PATH/bin/Pharmacy.jar</arg> 
-         <arg>org.celllife.idart.misc.PropertiesEncrypter</arg> 
-        <arg>$INSTALL_PATH/unencrypted_idart.properties</arg> 
+        <executefile name="$JAVA_HOME/bin/java">
+            <arg>-cp</arg>
+            <arg>$INSTALL_PATH/bin/Pharmacy.jar</arg>
+         <arg>org.celllife.idart.misc.PropertiesEncrypter</arg>
+        <arg>$INSTALL_PATH/unencrypted_idart.properties</arg>
         <arg>$INSTALL_PATH/idart.properties</arg>
         </executefile>
 	</job>

@@ -403,6 +403,16 @@ Check the log file in the install folder for the underlying error. If it's
 a permissions error, confirm the database user (`postgres` by default) has
 rights to create tables in the target database.
 
+**Database Connection Settings wizard "hangs"/does nothing on Finish, even after retyping a different database name/password**
+If you already clicked Finish once with the wrong details in the *same app
+session* (no full restart in between), the app can silently keep using its
+first connection attempt instead of your corrected one — it caches the
+database connection per-process and only opens a fresh one if none is
+cached yet, so a retry within the same running app can be ignored even
+though the wizard fields show your new input. **Fully close and relaunch
+the app** (not just retry in the wizard) before trying the corrected
+connection details again.
+
 **Error dialog titled "iDART: Error", "Error while updateing the database:
 liquibase.exception.ValidationFailedException"**
 For a fresh install (this guide, sections 1–3): this means the database
@@ -430,6 +440,19 @@ this screen even appears — see step 2.3 above. If you got here without
 seeing that prompt, either go back and re-launch as administrator, or click
 **Browse** here and pick a folder you already have write access to instead
 (e.g. `C:\Users\<you>\iDART`).
+
+**No `idart.log` is ever created / errors seem to vanish with no trace, especially when running as a normal (non-administrator) user**
+The installer now grants regular user accounts write access to the install
+folder automatically (an `icacls` step added to `metadata/install/process.xml`,
+running while the installer itself is still elevated). If you're using a
+jar built from a current checkout, this is already handled — the app can
+write `idart.log`, its properties file, etc. under `C:\Program Files\iDART`
+without needing "Run as administrator" every time. If you hit this on an
+installer jar built before that fix, either rebuild with
+`ant generateInstaller` from a current checkout, or work around it on the
+affected machine: right-click the install folder (default
+`C:\Program Files\iDART`) → **Properties** → **Security** tab → **Edit** →
+select your user account → check **Modify** → **OK**.
 
 **Installer freezes/hangs right after "The target directory will be created", no error shown**
 This was a real bug in earlier builds: the Windows shortcut-creation step
