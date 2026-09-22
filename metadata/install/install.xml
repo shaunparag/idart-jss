@@ -64,17 +64,26 @@
 		     Given (2), requesting elevation isn't a no-op fallback when it
 		     doesn't succeed - it actively breaks the installer's launch on
 		     exactly the kind of locked-down machine this app is deployed
-		     to. So: never attempt self-elevation. The installer always
-		     starts unelevated and always shows the Program-Files-rooted
-		     default from (1), which it can't write to unelevated - the
-		     expected, documented (WINDOWS11_INSTALL.md) path is to use
-		     Browse on the install-path screen and pick a folder the user
-		     already owns, e.g. under their own profile. Someone who wants
-		     Program Files specifically can still get it by launching this
-		     jar from an already-elevated Command Prompt/PowerShell
-		     themselves - the install-folder icacls grant in process.xml
-		     covers that case so the app can still write to it post-install
-		     without staying elevated. -->
+		     to. So: never attempt self-elevation.
+
+		     That still leaves (1)'s Program-Files-rooted default, which an
+		     unelevated installer can't write to. Fixed separately, without
+		     fighting loadInstallData() at all: TargetPanel's own
+		     constructor (a later, different code path - see
+		     PathInputPanel.loadDefaultInstallDir()/getDefaultInstallDir(),
+		     confirmed by disassembly and by an empirical Xvfb test using a
+		     throwaway TargetPanel.dir.unix resource before this shipped)
+		     re-reads idata's install path from a "TargetPanel.dir.windows"
+		     resource, if present, and applies it via idata.setInstallPath()
+		     - which sticks, since nothing runs loadInstallData() a second
+		     time. See the TargetPanel.dir.windows resource below for the
+		     actual default (a folder under the user's own profile, so no
+		     admin rights are needed at all in the common case). Someone who
+		     wants Program Files specifically can still type/Browse to it
+		     and launch this jar from an already-elevated Command
+		     Prompt/PowerShell themselves - the install-folder icacls grant
+		     in process.xml covers that case so the app can still write to
+		     it post-install without staying elevated. -->
 	</info>
 	<!-- height was 600: IzPack stacks each panel's rows top-to-bottom sized
 	     to their content, so on a display with larger Windows font/DPI
@@ -109,6 +118,11 @@
 		<res src="metadata/install/conditions.xml" id="conditions.xml" />
 		<res src="metadata/install/shortcutSpec.xml" id="shortcutSpec.xml" />
 		<res src="metadata/install/process.xml" id="ProcessPanel.Spec.xml" />
+		<!-- Overrides TargetPanel's shown default on Windows only (see the
+		     <info> comment above for why); first line, IzPack variable
+		     substitution applied. Unix/Mac are untouched - IzPack's own
+		     built-in fallback there already picks a writable location. -->
+		<res src="metadata/install/default-install-dir-windows.txt" id="TargetPanel.dir.windows" />
 	</resources>
 	<panels>
 		<panel classname="HelloPanel" />
