@@ -32,7 +32,7 @@
 	<parameter name="monthStart" class="java.lang.String" isForPrompting="false"/>
 	<parameter name="monthEnd" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
-		<![CDATA[select distinct d.id, d.name, d.packsize, d.nsncode,d.stockcode
+		<![CDATA[select distinct d.id, d.name, d.packsize, d.stockcode
 from drug as d, stock as s
 where s.drug = d.id 
 and s.stockCenter = $P{stockCenterId} 
@@ -42,7 +42,6 @@ order by d.name asc]]>
 	<field name="id" class="java.lang.Integer"/>
 	<field name="name" class="java.lang.String"/>
 	<field name="packsize" class="java.lang.Integer"/>
-	<field name="nsncode" class="java.lang.String"/>
 	<field name="stockcode" class="java.lang.String"/>
 	<variable name="test" class="java.lang.String" resetType="None">
 		<variableExpression><![CDATA["test"]]></variableExpression>
@@ -448,7 +447,7 @@ DESTROYED]]></text>
 					<subreportParameterExpression><![CDATA[$P{stockCenterId}]]></subreportParameterExpression>
 				</subreportParameter>
 				<subreportParameter name="NSN">
-					<subreportParameterExpression><![CDATA[$F{nsncode}]]></subreportParameterExpression>
+					<subreportParameterExpression><![CDATA[""]]></subreportParameterExpression>
 				</subreportParameter>
 				<subreportParameter name="name">
 					<subreportParameterExpression><![CDATA[$F{name}]]></subreportParameterExpression>
