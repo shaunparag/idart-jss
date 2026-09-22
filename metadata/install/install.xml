@@ -23,11 +23,6 @@
 		</authors>
 		<url>http://www.cell-life.org/dispense-idart</url>
 		<javaversion>1.5</javaversion>
-		<!-- Default install path is under C:\Program Files on Windows, which a
-		     non-elevated process can't write to under UAC. This makes the
-		     installer relaunch itself elevated (Windows only) instead of
-		     failing with "This directory can not be written!". -->
-		<run-privileged />
 	</info>
 	<!-- height was 600: IzPack stacks each panel's rows top-to-bottom sized
 	     to their content, so on a display with larger Windows font/DPI
@@ -49,6 +44,15 @@
 	</dynamicvariables>
 	<variables>
 		<variable name="DesktopShortcutCheckboxEnabled" value="true" />
+		<!-- Default to a folder the current user already owns, rather than
+		     C:\Program Files. That needs either UAC elevation (which the
+		     installer previously tried to self-request via
+		     <run-privileged/>, removed above) or the install-folder icacls
+		     grant in process.xml to actually run - and self-elevation can
+		     fail outright on locked-down/managed Windows machines with no
+		     admin credentials available at all, which no installer-side fix
+		     can work around. $USER_HOME is an IzPack built-in variable. -->
+		<variable name="INSTALL_PATH" value="$USER_HOME/iDART" />
 	</variables>
 
 	<locale>
