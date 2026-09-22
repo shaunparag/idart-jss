@@ -128,27 +128,25 @@ avoided; see the notes in `build.xml`). Do not install a newer JRE (11, 17,
    ```
    java -jar idart-install-<version>.jar
    ```
-3. The default install location is under `C:\Program Files`, which needs
-   administrator rights to write to — this can't be changed (the installer
-   tool we build on hardcodes that default with no way to override it, so
-   don't bother editing `install.xml` to try). The installer requests
-   elevation itself — expect a Windows **User Account Control** prompt
-   ("Do you want to allow this app to make changes to your device?") right
-   after step 2. Click **Yes**, and installing to the default location will
-   just work.
+3. The default install location shown on the install-path screen is under
+   `C:\Program Files`, which needs administrator rights to write to — this
+   can't be changed (the installer tool we build on hardcodes that default
+   with no way to override it, so don't bother editing `install.xml` to
+   try). **The installer does not request elevation itself** — it always
+   starts as a normal, unelevated process, so on this screen do one of:
+   - **(Recommended)** Click **Browse** and pick a folder you already own
+     instead, e.g. `C:\Users\<you>\iDART`, and continue — no admin rights
+     needed anywhere in the install.
+   - If you specifically want it under `C:\Program Files`, right-click
+     Command Prompt/PowerShell, choose **"Run as administrator"**, `cd` to
+     the folder with the jar, and run
+     `java -jar idart-install-<version>.jar` from that elevated prompt
+     instead — then the default path will actually be writable.
 
-   If you don't get that prompt, or you see "**The installer could not
-   launch itself with administrator permissions**", the installer's
-   self-elevation failed — this happens outright on some locked-down or
-   managed Windows machines with no admin credentials available to grant,
-   which nothing on the installer side can work around (it's a genuine
-   Windows security boundary, not a bug to fix). Two options: right-click
-   Command Prompt/PowerShell, choose **"Run as administrator"**, `cd` to
-   the folder with the jar, and run `java -jar idart-install-<version>.jar`
-   from that elevated prompt — or simpler, on this screen click **Browse**
-   and pick a folder you already own instead, e.g. `C:\Users\<you>\iDART`.
-   Accepting the default `C:\Program Files\...` path without either of
-   those will fail with a "directory can not be written" error.
+   Accepting the default `C:\Program Files\...` path from a normal,
+   non-elevated launch (the usual way of starting it) will fail with a
+   "directory can not be written" error — see Troubleshooting if you hit
+   that.
 4. Work through the installer wizard:
    - **Install path**: default is fine, or pick your own.
    - **Database Server**: `localhost` if you installed PostgreSQL on this
@@ -447,27 +445,37 @@ installer at an old database and working through wizard errors as they
 come — section 4 exists because that approach doesn't give you a way to
 tell a benign checksum mismatch apart from a real one.
 
-**"The installer could not launch itself with administrator permissions" dialog**
-This is IzPack's own self-elevation attempt failing. The install tool this
-project builds on hardcodes its default install path to somewhere under
-`C:\Program Files` with no install.xml-level way to change that default
-(confirmed by reading its actual compiled behavior directly — it's not an
-oversight in this project's config), so the installer always requests
-elevation for it. Elevation can fail outright on locked-down/managed
-Windows machines with no admin credentials available to grant, which
-nothing on the installer side can work around — it's a genuine Windows
-security boundary. Installation continues anyway, in non-elevated mode;
-you'll hit the next entry immediately afterward unless you take one of
-its two options.
+**Windows Script Host error: "There is no script engine for file extension '.js'"**, and/or **"The installer could not launch itself with administrator permissions"**
+Both of these were the installer attempting to self-elevate via UAC — its
+elevation mechanism runs a bundled JScript file (`elevate.js`) through
+Windows Script Host, and on a machine where WSH's JScript engine is
+disabled or unregistered (a common lockdown on managed/enterprise PCs),
+that throws the native WSH ".js" error first, which then makes the
+installer treat its own relaunch as failed and show the second dialog
+right behind it — same underlying cause, confirmed by reading the
+installer's actual compiled elevation logic directly. This reproduced
+even launching with `java -jar` directly, since the self-elevation
+attempt happens from inside the already-running installer process, not
+from however it was originally started.
+
+**Fixed as of this build: the installer no longer requests self-elevation
+at all**, so neither dialog should appear anymore — if you see either
+one, you're running an old installer jar; get a current one built with
+`ant generateInstaller`. See the next entry for the (expected, unrelated)
+"directory can not be written" message you'll still see if you keep the
+default `C:\Program Files\...` install path without running from an
+elevated prompt.
 
 **"This directory can not be written! Please choose another directory!" during install**
-Expected if the elevation prompt above didn't succeed (or you're running
-non-elevated on purpose) and you keep the default `C:\Program Files\...`
-path. Two ways forward: right-click Command Prompt/PowerShell, choose
-**"Run as administrator"**, `cd` to the folder with the jar, and re-run
-`java -jar idart-install-<version>.jar` from that elevated prompt — or
-simpler, click **Browse** on this screen and pick a folder you already
-own instead, e.g. `C:\Users\<you>\iDART`.
+Expected the first time through if you keep the default `C:\Program
+Files\...` path — the installer never self-elevates (see above), so it
+can't write there unless you launched it from an elevated prompt
+yourself. Two ways forward: click **Browse** on this screen and pick a
+folder you already own instead, e.g. `C:\Users\<you>\iDART` (simplest) —
+or restart the installer from an elevated Command Prompt/PowerShell
+(right-click → **"Run as administrator"**, `cd` to the folder with the
+jar, `java -jar idart-install-<version>.jar`) if you specifically want it
+under `C:\Program Files`.
 
 **No `idart.log` is ever created / errors seem to vanish with no trace, especially when running as a normal (non-administrator) user**
 Only relevant if you installed under an admin-owned location like

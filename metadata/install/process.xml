@@ -1,18 +1,22 @@
 <processing>
 
-	<!-- The install now defaults to a folder under the current user's own
-	     profile (see INSTALL_PATH in install.xml), which needs no special
-	     grant. This job is defense-in-depth for anyone who redirects the
-	     install to a shared/admin-owned location like C:\Program Files
-	     instead - the app runs unelevated after install and needs to write
-	     idart.log and other files directly into the install folder, so
-	     grant regular users write access here. This only succeeds if the
-	     installer itself is running elevated at this point (e.g. launched
-	     as Administrator) - it fails harmlessly otherwise, same as any
-	     other write into that kind of location would. Granting to the
-	     "Authenticated Users" well-known SID (rather than the "Users"
-	     group name) avoids issues on non-English Windows where the
-	     built-in group's display name is localized. -->
+	<!-- This installer never self-elevates (see install.xml) but the
+	     install-path screen still always defaults to somewhere under
+	     C:\Program Files (IzPack hardcodes that default with no
+	     install.xml-level override - see install.xml). Most installs
+	     avoid that default via Browse and pick a folder the user already
+	     owns, which needs no special grant. This job is defense-in-depth
+	     for anyone who instead launches the installer from an already
+	     -elevated Command Prompt/PowerShell and keeps the Program Files
+	     default - the app itself always runs unelevated day-to-day and
+	     needs to write idart.log and other files directly into the
+	     install folder, so grant regular users write access here. This
+	     only succeeds if the installer itself is running elevated at this
+	     point - it fails harmlessly otherwise, same as any other write
+	     into that kind of location would. Granting to the "Authenticated
+	     Users" well-known SID (rather than the "Users" group name) avoids
+	     issues on non-English Windows where the built-in group's display
+	     name is localized. -->
 	<job name="Granting write access on the install folder" >
 		<os family="windows" />
 		<executefile name="icacls">
