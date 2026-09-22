@@ -23,6 +23,30 @@
 		</authors>
 		<url>http://www.cell-life.org/dispense-idart</url>
 		<javaversion>1.5</javaversion>
+		<!-- This vendored IzPack version hardcodes the shown default install
+		     path: InstallerBase.loadInstallData() unconditionally computes
+		     it (Windows: the %ProgramFiles% environment variable, or a
+		     literal "C:\Program Files" fallback; Unix: /usr/local if
+		     writable, else user.home) and overwrites INSTALL_PATH with
+		     <that root>/<appname> as the very last step, with no check for
+		     an existing value and no install.xml-level hook - confirmed by
+		     reading the actual bytecode and by two separate empirical
+		     tests (overriding INSTALL_PATH directly, and overriding
+		     APPLICATIONS_DEFAULT_ROOT) under Xvfb, both silently ignored.
+		     So the default shown will always need admin rights to accept
+		     as-is - request self-elevation for it up front, same as the
+		     installer always writing there did originally. Where elevation
+		     succeeds (the common case) this "just works", helped along by
+		     the install-folder icacls grant in process.xml so the app can
+		     still write to it post-install without staying elevated. Where
+		     it fails (uncommon, but some locked-down/managed PCs block it
+		     outright - a real Windows security boundary needing actual
+		     admin credentials, not something any installer-side fix can
+		     paper over), the user sees IzPack's own "could not launch
+		     itself with administrator permissions" notice and can use
+		     Browse on the install-path screen to pick a folder they
+		     already own instead, e.g. under their own user profile. -->
+		<run-privileged />
 	</info>
 	<!-- height was 600: IzPack stacks each panel's rows top-to-bottom sized
 	     to their content, so on a display with larger Windows font/DPI
@@ -44,15 +68,6 @@
 	</dynamicvariables>
 	<variables>
 		<variable name="DesktopShortcutCheckboxEnabled" value="true" />
-		<!-- Default to a folder the current user already owns, rather than
-		     C:\Program Files. That needs either UAC elevation (which the
-		     installer previously tried to self-request via
-		     <run-privileged/>, removed above) or the install-folder icacls
-		     grant in process.xml to actually run - and self-elevation can
-		     fail outright on locked-down/managed Windows machines with no
-		     admin credentials available at all, which no installer-side fix
-		     can work around. $USER_HOME is an IzPack built-in variable. -->
-		<variable name="INSTALL_PATH" value="$USER_HOME/iDART" />
 	</variables>
 
 	<locale>

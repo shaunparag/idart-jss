@@ -128,16 +128,27 @@ avoided; see the notes in `build.xml`). Do not install a newer JRE (11, 17,
    ```
    java -jar idart-install-<version>.jar
    ```
-3. The default install location is a folder under your own user profile
-   (e.g. `C:\Users\<you>\iDART`), not `C:\Program Files` — no administrator
-   rights or UAC prompt are needed for a default install. If you'd rather
-   install under `C:\Program Files` (e.g. for a shared machine), use
-   **Browse** on this screen to change it, but then you do need to launch
-   the installer elevated first: right-click Command Prompt/PowerShell and
-   choose **"Run as administrator"**, `cd` to the folder with the jar, and
-   run `java -jar idart-install-<version>.jar` from there. Launching a
-   non-elevated installer and picking `C:\Program Files` anyway will fail
-   with a "directory can not be written" error partway through.
+3. The default install location is under `C:\Program Files`, which needs
+   administrator rights to write to — this can't be changed (the installer
+   tool we build on hardcodes that default with no way to override it, so
+   don't bother editing `install.xml` to try). The installer requests
+   elevation itself — expect a Windows **User Account Control** prompt
+   ("Do you want to allow this app to make changes to your device?") right
+   after step 2. Click **Yes**, and installing to the default location will
+   just work.
+
+   If you don't get that prompt, or you see "**The installer could not
+   launch itself with administrator permissions**", the installer's
+   self-elevation failed — this happens outright on some locked-down or
+   managed Windows machines with no admin credentials available to grant,
+   which nothing on the installer side can work around (it's a genuine
+   Windows security boundary, not a bug to fix). Two options: right-click
+   Command Prompt/PowerShell, choose **"Run as administrator"**, `cd` to
+   the folder with the jar, and run `java -jar idart-install-<version>.jar`
+   from that elevated prompt — or simpler, on this screen click **Browse**
+   and pick a folder you already own instead, e.g. `C:\Users\<you>\iDART`.
+   Accepting the default `C:\Program Files\...` path without either of
+   those will fail with a "directory can not be written" error.
 4. Work through the installer wizard:
    - **Install path**: default is fine, or pick your own.
    - **Database Server**: `localhost` if you installed PostgreSQL on this
@@ -437,40 +448,40 @@ come — section 4 exists because that approach doesn't give you a way to
 tell a benign checksum mismatch apart from a real one.
 
 **"The installer could not launch itself with administrator permissions" dialog**
-This is IzPack's own self-elevation attempt failing — it can fail outright
-on locked-down/managed Windows machines with no admin credentials available
-to grant, which no installer-side fix can work around (elevation
-fundamentally requires real admin credentials to exist somewhere).
-On a jar built from a current checkout this shouldn't appear at all: the
-installer no longer tries to self-elevate, because it no longer defaults
-to an admin-owned location — see the next entry. If you hit this on an
-older jar, rebuild with `ant generateInstaller` from a current checkout.
+This is IzPack's own self-elevation attempt failing. The install tool this
+project builds on hardcodes its default install path to somewhere under
+`C:\Program Files` with no install.xml-level way to change that default
+(confirmed by reading its actual compiled behavior directly — it's not an
+oversight in this project's config), so the installer always requests
+elevation for it. Elevation can fail outright on locked-down/managed
+Windows machines with no admin credentials available to grant, which
+nothing on the installer side can work around — it's a genuine Windows
+security boundary. Installation continues anyway, in non-elevated mode;
+you'll hit the next entry immediately afterward unless you take one of
+its two options.
 
 **"This directory can not be written! Please choose another directory!" during install**
-On a jar built from a current checkout, the default install path is a
-folder under your own user profile (e.g. `C:\Users\<you>\iDART`), which
-never needs administrator rights — you shouldn't see this on a default
-install. You'll only hit it if you deliberately changed the install path
-to somewhere admin-owned (like `C:\Program Files`) without launching the
-installer elevated first; see step 2.3 above for how to do that. If you
-hit this on an installer jar built before this change, either rebuild
-with `ant generateInstaller` from a current checkout, or click **Browse**
-here and pick a folder you already have write access to instead.
+Expected if the elevation prompt above didn't succeed (or you're running
+non-elevated on purpose) and you keep the default `C:\Program Files\...`
+path. Two ways forward: right-click Command Prompt/PowerShell, choose
+**"Run as administrator"**, `cd` to the folder with the jar, and re-run
+`java -jar idart-install-<version>.jar` from that elevated prompt — or
+simpler, click **Browse** on this screen and pick a folder you already
+own instead, e.g. `C:\Users\<you>\iDART`.
 
 **No `idart.log` is ever created / errors seem to vanish with no trace, especially when running as a normal (non-administrator) user**
-On a jar built from a current checkout, this shouldn't happen for a
-default install (the install folder is already under your own profile,
-so the app can always write to it). It's only relevant if you installed
-under an admin-owned location like `C:\Program Files`: the installer
-grants regular user accounts write access to the install folder
-automatically in that case too (an `icacls` step in
-`metadata/install/process.xml`), but only if the installer itself was
-running elevated at install time — see the "directory can not be
-written" entry above. If you hit this on an installer jar built before
-that fix, either rebuild with `ant generateInstaller` from a current
-checkout, or work around it on the affected machine: right-click the
-install folder → **Properties** → **Security** tab → **Edit** → select
-your user account → check **Modify** → **OK**.
+Only relevant if you installed under an admin-owned location like
+`C:\Program Files` (the default). The installer grants regular user
+accounts write access to the install folder automatically (an `icacls`
+step in `metadata/install/process.xml`), but only if the installer
+itself was running elevated at install time. If you installed under
+your own user profile instead (via Browse, per the entry above), this
+doesn't apply — you already own that folder. If you hit this on an
+installer jar built before the `icacls` fix, either rebuild with
+`ant generateInstaller` from a current checkout, or work around it on
+the affected machine: right-click the install folder → **Properties** →
+**Security** tab → **Edit** → select your user account → check
+**Modify** → **OK**.
 
 **Installer freezes/hangs right after "The target directory will be created", no error shown**
 This was a real bug in earlier builds: the Windows shortcut-creation step
