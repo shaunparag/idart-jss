@@ -7,6 +7,7 @@ import org.celllife.idart.commonobjects.iDartProperties;
 import org.celllife.idart.database.DatabaseTools;
 import org.celllife.idart.database.hibernate.util.HibernateUtil;
 import org.celllife.idart.database.hibernate.util.JDBCUtil;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
@@ -28,6 +29,10 @@ public class ConnectionPage extends WizardPage implements PropertiesPage {
 	private Text txtPasswd;
 	private final Map<String, String> connSettings;
 	private Text txtName;
+	// Tracks the last connection failure shown in a modal alert, so repeated
+	// identical failures (e.g. while the user is still typing a password
+	// one character at a time) don't pop a dialog on every debounced retry.
+	private String lastAlertedError;
 
 	public ConnectionPage() {
 		super("Connection Settings");
@@ -139,12 +144,38 @@ public class ConnectionPage extends WizardPage implements PropertiesPage {
 			JDBCUtil.rebuild();
 			JDBCUtil.currentSession();
 			JDBCUtil.closeJDBCConnection();
+			lastAlertedError = null;
 			return true;
 		} catch (Throwable e) {
 			setPageComplete(false);
 			setErrorMessage(e.getMessage());
+			alertConnectionFailure(e);
 		}
 		return false;
+	}
+
+	/**
+	 * Pops a modal alert for a connection failure, so it's impossible to
+	 * miss even if the inline wizard error banner goes unnoticed. Only
+	 * shown when the failure differs from the last one already alerted,
+	 * so repeated identical failures (e.g. while still typing a password)
+	 * don't nag on every debounced retry.
+	 */
+	private void alertConnectionFailure(Throwable e) {
+		String message = e.getMessage();
+		if (message != null && message.equals(lastAlertedError)) {
+			return;
+		}
+		lastAlertedError = message;
+		MessageDialog.openError(getShell(), "Connection Failed",
+				"iDART could not connect to the database with these settings.\n\n"
+				+ (message != null ? message : e.toString()) + "\n\n"
+				+ "Check the server address, database name, username and "
+				+ "password above, and check idart.log in the install folder "
+				+ "for more detail.\n\n"
+				+ "If this keeps failing after you're sure the details are "
+				+ "correct, try fully closing and relaunching iDART before "
+				+ "trying again.");
 	}
 
 	@Override
