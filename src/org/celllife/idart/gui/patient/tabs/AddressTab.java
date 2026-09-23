@@ -226,8 +226,8 @@ public class AddressTab extends GenericTab implements IPatientTab {
 	 */
 	@Override
 	public void loadPatientDetails(Patient patient, boolean isPatientActive) {
-		CommonObjects.populateProvinces(hSession, cmbProvince);
-
+		// The province list was filled when the tab was created; filling it
+		// again here added a second copy of every province.
 		txtPhoneHome.setText(patient.getHomePhone());
 		txtAddress1.setText(patient.getAddress1());
 		txtAddress2.setText(patient.getAddress2());
