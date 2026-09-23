@@ -27,6 +27,7 @@ import model.manager.SearchManager;
 import model.manager.reports.PackageTrackingReport;
 import model.nonPersistent.PatientIdAndName;
 
+import org.apache.log4j.Logger;
 import org.celllife.idart.commonobjects.iDartProperties;
 import org.celllife.idart.gui.platform.GenericReportGui;
 import org.celllife.idart.gui.utils.ResourceUtils;
@@ -292,6 +293,7 @@ public class PackageTracking extends GenericReportGui {
 
 	@Override
 	protected void setLogger() {
+		setLog(Logger.getLogger(this.getClass()));
 	}
 
 }
