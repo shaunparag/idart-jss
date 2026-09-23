@@ -69,51 +69,23 @@ avoided; see the notes in `build.xml`). Do not install a newer JRE (11, 17,
    installs.
 2. Run the installer. When prompted for a password for the `postgres`
    superuser, set one and **remember it exactly** — you'll need it again
-   in step 4 below and in the iDART installer later, and there's no way
+   in step 3 below and in the iDART installer later, and there's no way
    to recover it if forgotten (only reset, which needs the recovery
-   procedure in Troubleshooting below).
-3. **Important — switch to `md5` authentication before going further.**
-   The vendored PostgreSQL driver predates SCRAM-SHA-256 (the modern
-   default) and cannot authenticate with it. Do the following steps
-   **in this exact order** — doing the `pg_hba.conf` change (step 5)
-   before re-storing the password (step 4) will lock you out (see
-   Troubleshooting if that happens).
-4. Open **pgAdmin**, connect to the server with the password from step 2
-   (this still works normally at this point — nothing's changed yet),
-   open a query tool, and run both of these, in order:
-   ```sql
-   ALTER SYSTEM SET password_encryption = 'md5';
-   ALTER USER postgres WITH PASSWORD 'your-password-here';
-   ```
-   The first changes how *new* passwords get stored from now on; the
-   second re-stores the current password using that new format, while
-   you're still safely connected under the old one. Use the same
-   password again, or a new one — either way, this is the point where
-   it actually becomes `md5`-stored.
-5. **Now** change how connections are authenticated. Open
-   `C:\Program Files\PostgreSQL\<version>\data\pg_hba.conf` in a text
-   editor **running as Administrator** (it's a protected folder — e.g.
-   right-click Notepad → Run as administrator, then File → Open).
-   Change every line ending in `scram-sha-256` to end in `md5`
-   instead — there are normally a few `local`/`host` lines like this:
-   ```
-   host    all             all             127.0.0.1/32            md5
-   host    all             all             ::1/128                 md5
-   ```
-   Save the file.
-6. Restart the PostgreSQL service for the `pg_hba.conf` change to take
-   effect: **Services** app (search Windows for "Services") → find
-   `postgresql-x64-<version>` → Restart.
-7. Reconnect in pgAdmin with the same password to confirm it still
-   works — it should, on the first try, since the password was already
-   re-stored as `md5` in step 4 before the auth method changed.
-8. Create the database iDART will use:
+   procedure in Troubleshooting below). Leave PostgreSQL's password
+   settings at their defaults: the database driver bundled with iDART
+   supports the default `scram-sha-256` method.
+
+   Earlier versions of this guide had extra steps here to switch
+   PostgreSQL to `md5` passwords. They're no longer needed, and machines
+   already set up that way keep working as they are.
+3. Create the database iDART will use: open **pgAdmin**, connect to the
+   server with the password from step 2, open a Query Tool, and run:
    ```sql
    CREATE DATABASE pharm OWNER postgres;
    ```
-   (`pharm` is the installer's default database name — see step 2.3 below.
-   You can use a different name, just be consistent between here and the
-   installer wizard.)
+   (`pharm` is the installer's default database name — see section 2,
+   step 4. You can use a different name, just be consistent between here
+   and the installer wizard.)
 
    **Use a genuinely fresh, empty PostgreSQL server for this** — either
    a brand new local install (as above) or an empty database on an
@@ -153,9 +125,11 @@ avoided; see the notes in `build.xml`). Do not install a newer JRE (11, 17,
      then, it must point at a fresh, empty database; see the
      `ValidationFailedException` entry in Troubleshooting if you're
      tempted to point this at an existing/older iDART database instead.
-   - **iDART Database Name**: `pharm` (must match what you created in 1.2.8).
+   - **iDART Database Name**: `pharm` (must match what you created in
+     section 1.2, step 3).
    - **iDART Database Username**: `postgres`.
-   - **iDART Database Password**: the password you set/confirmed in 1.2.2/1.2.4.
+   - **iDART Database Password**: the `postgres` password you set in
+     section 1.2, step 2.
    - **Connecting to Ekapa?**: **No** (Ekapa is a South African health
      system integration, not relevant here).
    - The remaining panels are dispensing/label/workflow preferences
@@ -183,6 +157,7 @@ avoided; see the notes in `build.xml`). Do not install a newer JRE (11, 17,
    Go to **General Admin** after logging in to manage users.
 4. After logging in you should see the main dashboard (General Admin,
    Patient Admin, Stock & Dispensing, Reports).
+5. Before entering real patients, set up daily backups — see section 5.
 
 ## 4. Migrating data from an older iDART installation
 
@@ -329,7 +304,48 @@ out to satellite clinics) across the Stock Control and
 Package-to-Patient screens, so confirm that operating model actually
 fits before switching it just to unlock the login dropdown.
 
-## 5. Troubleshooting
+## 5. Backing up and restoring
+
+All patient, prescription, dispensing and stock records live in the
+PostgreSQL database, not in the iDART install folder — reinstalling iDART
+or copying its folder does not back them up. Back up at least once a day,
+and keep copies somewhere other than this PC.
+
+### 5.1 Making a backup
+
+1. Start menu → **All apps** → **iDart** → **Backup iDART database** (or
+   double-click `backup.bat` in the install folder).
+2. When asked, enter the PostgreSQL password — the one you entered on the
+   iDART installer's database screen.
+3. The window shows where the backup was saved:
+   `C:\Users\<you>\iDART-backups\iDART-<database>-<date>_<time>.backup`.
+   That folder is outside the install folder, so uninstalling iDART
+   doesn't delete your backups.
+4. Copy the file off this PC (USB drive or network folder) — a backup on
+   the same disk doesn't survive a disk failure or a stolen PC.
+
+If the window says it couldn't find `pg_dump.exe`, PostgreSQL is installed
+somewhere other than `C:\Program Files\PostgreSQL`: open `backup.bat` in
+Notepad and set `postgresDir` to the folder containing `pg_dump.exe`.
+
+pgAdmin can make the same kind of backup: right-click the database →
+**Backup…**, with Format set to **Custom**.
+
+### 5.2 Restoring a backup
+
+Restore into a new, empty database — never over the one in use — then
+point iDART at it. In Command Prompt:
+```
+"C:\Program Files\PostgreSQL\<version>\bin\createdb" -h localhost -U postgres pharm_restored
+"C:\Program Files\PostgreSQL\<version>\bin\pg_restore" -h localhost -U postgres -d pharm_restored "C:\Users\<you>\iDART-backups\<backup file>"
+```
+Then follow section 4.3 to point iDART at `pharm_restored`, and section
+4.5 to check the row counts.
+
+Try one restore soon after setting up backups, so you know the backup
+files are good before you need them.
+
+## 6. Troubleshooting
 
 **"JAVA_HOME is not set and javaw.exe was not found on PATH"**
 `launcher.bat` couldn't find a Java install. Recheck section 1.1 — either
@@ -388,27 +404,29 @@ To confirm and fix:
   `localhost`, not a remote hostname — this exact mix-up (accidentally
   pointing at a different, pre-existing server on the network) is what
   caused this error during testing.
-- Authentication error instead of connection refused: password
-  encryption is still `scram-sha-256`, or the password stored on the
-  server doesn't match what you typed. Revisit section 1.2 steps 3–7.
+- Authentication error instead of connection refused: the password you
+  typed doesn't match the one stored on the server for that user. If it's
+  been forgotten, see the next entry.
 
-**"password authentication failed for user \"postgres\"" when reconnecting in pgAdmin, after switching pg_hba.conf to md5 (locked out)**
-This means the password actually stored on the server doesn't match
-what you're typing — most likely because `pg_hba.conf` was switched to
-`md5` (section 1.2 step 5) before the password was re-stored in `md5`
-format (step 4), or the password was simply mistyped/forgotten along
-the way. Recover it with PostgreSQL's standard "trust" trick:
-1. Edit `pg_hba.conf` again (as Administrator) — change the `local
-   all all`, `host all all 127.0.0.1/32`, and `host all all ::1/128`
-   lines from `md5` to **`trust`** (leave the `replication` lines
-   alone).
-2. Restart the PostgreSQL service.
+**Forgot the `postgres` password, or "password authentication failed for user \"postgres\""**
+This means the password stored on the server doesn't match what you're
+typing. Reset it with PostgreSQL's standard "trust" trick:
+1. Open `C:\Program Files\PostgreSQL\<version>\data\pg_hba.conf` in a
+   text editor **running as Administrator** (it's a protected folder —
+   e.g. right-click Notepad → Run as administrator, then File → Open).
+   On the `local all all`, `host all all 127.0.0.1/32`, and
+   `host all all ::1/128` lines, note the method at the end of the line
+   (normally `scram-sha-256`; `md5` on machines set up with an older
+   version of this guide) and change it to **`trust`**. Leave the
+   `replication` lines alone.
+2. Restart the PostgreSQL service (**Services** app →
+   `postgresql-x64-<version>` → Restart).
 3. Reconnect in pgAdmin — it should now connect without checking any
    password.
 4. Run `ALTER USER postgres WITH PASSWORD 'your-password-here';` to
    set a password you're sure of.
-5. Edit `pg_hba.conf` a third time, changing those same lines from
-   `trust` back to `md5`.
+5. Edit `pg_hba.conf` again, changing those same lines from `trust` back
+   to the method you noted in step 1.
 6. Restart the service once more, then reconnect with the new
    password to confirm.
 
@@ -417,6 +435,10 @@ the way. Recover it with PostgreSQL's standard "trust" trick:
    optional cleanup. If this feels like too much back-and-forth and
    nothing real is stored on the server yet, uninstalling and
    reinstalling PostgreSQL fresh is an equally valid shortcut.
+
+iDART still has the old password saved, so on its next launch it can't
+connect and opens the **Database Connection Settings** screen: enter the
+new password there and click Finish.
 
 **"Unable to create the database"**
 Check the log file in the install folder for the underlying error. If it's
@@ -445,7 +467,7 @@ has iDART migration history in it (`SELECT * FROM databasechangelog;`
 will show existing rows if so), most likely because it's an existing
 database from an older iDART deployment rather than a new one created
 per section 1.2. **Use a genuinely fresh, empty database** (section 1.2
-step 8) to get the app running.
+step 3) to get the app running.
 
 If you're deliberately migrating an older deployment's real data, see
 section 4 for the full procedure — this same error can show up
