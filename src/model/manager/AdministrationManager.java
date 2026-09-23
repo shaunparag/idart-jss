@@ -1027,28 +1027,23 @@ public class AdministrationManager {
 	public static void savePharmacyDetails(Session session,
 			PharmacyDetails pharmDet) {
 
-		String qString = "UPDATE SimpleDomain SET value = '$value' WHERE name = '$name' and "
-			+ "description = 'pharmacy_detail'";
+		// Bound parameters, not text pasted into the query: an apostrophe in
+		// a value (St Mary's Pharmacy) used to break the query and the save.
+		Query update = session.createQuery("UPDATE SimpleDomain SET value = :value "
+				+ "WHERE name = :name and description = 'pharmacy_detail'");
 
-		session.createQuery(
-				qString.replace("$name", "pharmacist").replace("$value",
-						pharmDet.getPharmacist())).executeUpdate();
-		session.createQuery(
-				qString.replace("$name", "assistant_pharmacist").replace(
-						"$value", pharmDet.getAssistantPharmacist()))
-						.executeUpdate();
-		session.createQuery(
-				qString.replace("$name", "pharmacy_name").replace("$value",
-						pharmDet.getPharmacyName())).executeUpdate();
-		session.createQuery(
-				qString.replace("$name", "pharmacy_street").replace("$value",
-						pharmDet.getStreet())).executeUpdate();
-		session.createQuery(
-				qString.replace("$name", "pharmacy_city").replace("$value",
-						pharmDet.getCity())).executeUpdate();
-		session.createQuery(
-				qString.replace("$name", "pharmacy_contact_no").replace(
-						"$value", pharmDet.getContactNo())).executeUpdate();
+		update.setString("name", "pharmacist")
+				.setString("value", pharmDet.getPharmacist()).executeUpdate();
+		update.setString("name", "assistant_pharmacist")
+				.setString("value", pharmDet.getAssistantPharmacist()).executeUpdate();
+		update.setString("name", "pharmacy_name")
+				.setString("value", pharmDet.getPharmacyName()).executeUpdate();
+		update.setString("name", "pharmacy_street")
+				.setString("value", pharmDet.getStreet()).executeUpdate();
+		update.setString("name", "pharmacy_city")
+				.setString("value", pharmDet.getCity()).executeUpdate();
+		update.setString("name", "pharmacy_contact_no")
+				.setString("value", pharmDet.getContactNo()).executeUpdate();
 
 	}
 	
