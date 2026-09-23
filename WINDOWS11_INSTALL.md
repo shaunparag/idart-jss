@@ -157,7 +157,13 @@ avoided; see the notes in `build.xml`). Do not install a newer JRE (11, 17,
    Go to **General Admin** after logging in to manage users.
 4. After logging in you should see the main dashboard (General Admin,
    Patient Admin, Stock & Dispensing, Reports).
-5. Before entering real patients, set up daily backups — see section 5.
+5. Enter your pharmacy's details: **General Admin → Manage Pharmacies**,
+   choose **Update Facility Details**, and fill in the facility name,
+   street address, city, telephone number, head pharmacist and pharmacy
+   assistant. These print on every label and on reports. A new database
+   starts with placeholders ("Facility Name", "Demo Pharmacist, B.Pharm"),
+   so labels look wrong until this is done.
+6. Before entering real patients, set up daily backups — see section 5.
 
 ## 4. Migrating data from an older iDART installation
 
