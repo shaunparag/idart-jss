@@ -41,6 +41,7 @@ import org.celllife.idart.database.hibernate.util.HibernateUtil;
 import org.celllife.idart.events.EventManager;
 import org.celllife.idart.gui.login.Login;
 import org.celllife.idart.gui.login.LoginErr;
+import org.celllife.idart.gui.utils.CComboArrows;
 import org.celllife.idart.gui.welcome.ClinicWelcome;
 import org.celllife.idart.gui.welcome.GenericWelcome;
 import org.celllife.idart.gui.welcome.Load;
@@ -127,6 +128,10 @@ public class PharmacyApplication {
 	private static void createDisplay() {
 		if (Display.getCurrent() == null) {
 			new Display();
+		}
+		if (System.getProperty("os.name", "").toUpperCase().startsWith("WINDOWS")) {
+			// Windows 11 shows CCombo arrow buttons as empty boxes
+			CComboArrows.install(Display.getCurrent());
 		}
 	}
 
