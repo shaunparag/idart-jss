@@ -46,7 +46,7 @@ public class PatientSheet extends BaseImportSheet {
 		columns.add(new SingleImportColumn<String>("Address 1","address1"));
 		columns.add(new SingleImportColumn<String>("Address 2","address2"));
 		columns.add(new SingleImportColumn<String>("Address 3","address3"));
-		columns.add(new SingleImportColumn<String>("Cell Phone Number","cellphone"));
+		columns.add(new SingleImportColumn<String>("Cell Phone Number", true, new CellphoneConverter(), null, "cellphone"));
 		columns.add(new SingleImportColumn<String>("Home Phone Number","homePhone"));
 		columns.add(new SingleImportColumn<String>("Work Phone Number","workPhone"));
 		columns.add(new SingleImportColumn<String>("Next of kin name","nextOfKinName"));

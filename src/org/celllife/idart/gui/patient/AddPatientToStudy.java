@@ -189,6 +189,8 @@ public class AddPatientToStudy extends GenericFormGui {
 
 	@Override
 	protected boolean fieldsOk() {
+		// 0821234567 -> 27821234567, before it's validated and saved
+		txtCellNo.setText(MobilisrManager.normaliseMsisdn(txtCellNo.getText().trim()));
 		if (MobilisrManager.validateMsisdn(txtCellNo.getText().trim()) != null){
 			ValidationError error = MobilisrManager.validateMsisdn(txtCellNo.getText().trim());
 			String message;

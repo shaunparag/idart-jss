@@ -159,4 +159,34 @@ public class MobilisrManager {
 		ValidationError error = getValidator().validateMsisdn(msisdn);
 		return error;
 	}
+
+	/**
+	 * Puts a cellphone number in the form validateMsisdn expects, using the
+	 * msisdnPrefix from sms.properties as the country code.
+	 *
+	 * @see #normaliseMsisdn(String, String)
+	 */
+	public static String normaliseMsisdn(String number) {
+		if (number == null || number.trim().isEmpty())
+			return number;
+		return normaliseMsisdn(number, PropertiesManager.sms().msisdnPrefix());
+	}
+
+	/**
+	 * Removes spaces and hyphens and a leading +, and swaps the 0 of a
+	 * national number for the country code, so 082 123 4567 becomes
+	 * 27821234567. Anything else is returned as it is for validateMsisdn to
+	 * accept or reject.
+	 */
+	public static String normaliseMsisdn(String number, String countryCode) {
+		if (number == null)
+			return null;
+		String msisdn = number.replaceAll("[\\s-]", "");
+		if (msisdn.startsWith("+"))
+			return msisdn.substring(1);
+		if (countryCode != null && !countryCode.trim().isEmpty()
+				&& msisdn.matches("0[1-9][0-9]*"))
+			return countryCode.trim() + msisdn.substring(1);
+		return msisdn;
+	}
 }

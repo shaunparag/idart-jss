@@ -2206,6 +2206,9 @@ public class AddPatient extends GenericFormGui implements iDARTChangeListener {
 		if (!isSaveRequired())
 			return true;
 
+		// 0821234567 -> 27821234567, before it's validated and saved
+		txtCellphone.setText(MobilisrManager.normaliseMsisdn(txtCellphone.getText().trim()));
+
 		//Check if the patient is on a study
 		//yes - update patient details
 		setLocalPatient();

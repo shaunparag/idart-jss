@@ -65,6 +65,8 @@ OTHER COLUMNS
 - ID columns: can't contain the characters ' ` or ^, and can't already
   belong to another patient.
 - Sex: F, Female, M, Male, U or Unknown. Blank means Unknown.
+- Cell Phone Number: 0821234567, 082 123 4567 and +27821234567 are all
+  stored as 27821234567.
 - Clinic: capitals don't matter, but otherwise the name must match an
   existing clinic exactly. A name that doesn't match creates a new
   clinic, so check the spelling.
