@@ -259,8 +259,9 @@ Validation Failed:
      2 change sets check sum
           org/celllife/idart/database/changelog-3.8.xml::3.8.2::simon@cell-life.org is now: 3:...
 ```
-- If it lists only 3.8.2 and 3.8.4, that PC has an older build. Install
-  the current one, or use the fix below.
+- If it lists only 3.8.2 and 3.8.4, that PC has an iDART older than
+  3.9.0 (the version is on the login screen). Install the current one,
+  or use the fix below.
 - Anything else is a real difference between the code and the database.
   Verify it before dismissing it: compare what the referenced file would
   actually do against what's already in the target database (e.g. for a
