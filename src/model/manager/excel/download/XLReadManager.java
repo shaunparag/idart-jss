@@ -42,7 +42,7 @@ public class XLReadManager {
 
 	private Workbook read = null;
 
-	private Logger log = null;
+	private Logger log = Logger.getLogger(XLReadManager.class);
 
 	private Sheet readableSheet = null;
 	

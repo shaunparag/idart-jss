@@ -30,11 +30,14 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Vector;
 
+import org.apache.log4j.Logger;
 import org.celllife.idart.commonobjects.iDartProperties;
 
 /**
  */
 public class DrugLabel implements Printable, DefaultLabel {
+
+	Logger log = Logger.getLogger(this.getClass());
 
 	final int BORDER_X = 5;
 
@@ -135,11 +138,14 @@ public class DrugLabel implements Printable, DefaultLabel {
 			// }
 
 		} catch (ParseException e) {
-			e.printStackTrace();
+			log.error("Error formatting next appointment date for drug label", e);
 		}
 
-		// Check to see if next Appointment date should appear on Label
-		if (!nextAppointmentDate.equals("")) {
+		// Check to see if next Appointment date should appear on Label.
+		// The label drawing code below expects a non-null string.
+		if (nextAppointmentDate == null) {
+			nextAppointmentDate = "";
+		} else if (!nextAppointmentDate.equals("")) {
 			this.nextAppointmentDate = "Next appointment:"
 					+ nextAppointmentDate;
 		}

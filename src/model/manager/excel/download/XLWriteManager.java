@@ -56,7 +56,7 @@ public class XLWriteManager {
 
 	protected ByteArrayOutputStream bos = new ByteArrayOutputStream();
 
-	private Logger log = null;
+	private Logger log = Logger.getLogger(XLWriteManager.class);
 
 	protected WritableSheet writableSheet = null;
 

@@ -46,11 +46,14 @@ import javax.print.SimpleDoc;
 import javax.print.attribute.DocAttributeSet;
 import javax.print.attribute.HashDocAttributeSet;
 
+import org.apache.log4j.Logger;
 import org.celllife.idart.commonobjects.iDartProperties;
 
 /**
  */
 public class PrintLabel {
+
+	private static Logger log = Logger.getLogger(PrintLabel.class);
 
 	/**
 	 * Label width for label 750mm x 500mm in 1/72 of an inch (Adjusted for
@@ -142,9 +145,9 @@ public class PrintLabel {
 				job.print();
 
 			} catch (PrinterException e) {
-				e.printStackTrace();
+				log.error("Error printing labels", e);
 			} catch (Exception ex) {
-				ex.printStackTrace();
+				log.error("Error printing labels", ex);
 			}
 
 		}

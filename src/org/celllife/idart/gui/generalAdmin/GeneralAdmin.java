@@ -506,7 +506,7 @@ public class GeneralAdmin extends GenericAdminGui {
 	}
 	
 	protected void cmd_importPatients() {
-		FileDialog dlg = new FileDialog(getShell(), SWT.SAVE);
+		FileDialog dlg = new FileDialog(getShell(), SWT.OPEN);
 		dlg.setFilterExtensions(FileType.EXCEL.getFilterExtensions());
 		dlg.setFilterNames(FileType.EXCEL.getFilterNames());
 		String fileName = dlg.open();
