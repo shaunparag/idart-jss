@@ -24,7 +24,7 @@
 		<defaultValueExpression><![CDATA["./"]]></defaultValueExpression>
 	</parameter>
 	<queryString language="hql">
-		<![CDATA[select pat.patientId as patientid, pack.clinic.clinicName as clinic, pack.packageId as packageid, pack.packDate as packdate, pack.dateLeft as dateleft, pack.dateReceived as datereceived, pack.pickupDate as pickupdate, pack.dateReturned as datereturned, pack.reasonForPackageReturn as reason, pack.stockReturned as stockReturned
+		<![CDATA[select pat.patientId as patientid, pack.clinic.clinicName as clinic, pack.packageId as packageid, pack.packDate as packdate, pack.dateLeft as dateleft, pack.dateReceived as datereceived, pack.pickupDate as pickupdate, pack.dateReturned as datereturned, pack.reasonForPackageReturn as reason, pack.stockReturned as stockReturned, pack.id as packid
 from Patient as pat, Packages as pack
 where pat.id = pack.prescription.patient
 and pat.patientId = $P{patId}
@@ -40,6 +40,7 @@ order by pack.packDate desc]]>
 	<field name="reason" class="java.lang.String"/>
 	<field name="stockReturned" class="java.lang.Boolean"/>
 	<field name="clinic" class="java.lang.String"/>
+	<field name="packid" class="java.lang.Integer"/>
 	<variable name="test" class="java.lang.String" resetType="None">
 		<variableExpression><![CDATA["test"]]></variableExpression>
 		<initialValueExpression><![CDATA["test"]]></initialValueExpression>
@@ -420,8 +421,8 @@ new SimpleDateFormat("hh:mm aaa").format($F{pickupdate})]]></textFieldExpression
 				<subreportParameter name="path">
 					<subreportParameterExpression><![CDATA[$P{path}]]></subreportParameterExpression>
 				</subreportParameter>
-				<subreportParameter name="packageID">
-					<subreportParameterExpression><![CDATA[$F{packageid}]]></subreportParameterExpression>
+				<subreportParameter name="packid">
+					<subreportParameterExpression><![CDATA[$F{packid}]]></subreportParameterExpression>
 				</subreportParameter>
 				<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
 				<subreportExpression class="java.lang.String"><![CDATA[$P{path} + java.io.File.separator+"packageTrackingReport_PackageDrugs.jasper"]]></subreportExpression>

@@ -5,15 +5,13 @@
 	<import value="net.sf.jasperreports.engine.*"/>
 	<import value="java.util.*"/>
 	<import value="net.sf.jasperreports.engine.data.*"/>
-	<parameter name="packageID" class="java.lang.String" isForPrompting="false">
-		<defaultValueExpression><![CDATA["070203B-NM2774-1"]]></defaultValueExpression>
-	</parameter>
+	<!-- the package's database id: package IDs such as 070203B-NM2774-1 can repeat -->
+	<parameter name="packid" class="java.lang.Integer" isForPrompting="false"/>
 	<parameter name="path" class="java.lang.String" isForPrompting="false"/>
 	<queryString>
-		<![CDATA[select pd.id as packageDrugId from packageddrugs pd 
-where pd.parentpackage =   
-(
-select p.id from package p where packageId = $P{packageID})]]>
+		<![CDATA[select pd.id as packageDrugId from packageddrugs pd
+where pd.parentpackage = $P{packid}
+order by pd.id]]>
 	</queryString>
 	<field name="packageDrugId" class="java.lang.Integer"/>
 	<background>
