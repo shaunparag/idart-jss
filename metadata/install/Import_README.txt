@@ -43,16 +43,18 @@ idart-<number>-exportErrors.xls in the iDART install folder. Correct
 the rows in that file and import it the same way; the Reason for Error
 column is ignored.
 
-More detail about errors, particularly about dates, may be in idart.log
-in the iDART install folder.
+More detail about errors may be in idart.log in the iDART install
+folder.
 
 DATES
 -----
 Type dates so that Excel recognises them as dates. Otherwise type them
-as text in one of these forms: 15 Jun 1985, 1985/06/15 or 15-06-1985.
-Other text forms, such as 15/06/1985 or 1985-06-15, can be read as the
-wrong date without any error, so check a few imported patients' dates
-afterwards.
+as text in one of these forms, always with a 4-digit year:
+15 Jun 1985, 15/06/1985, 15-06-1985, 1985/06/15 or 1985-06-15.
+15/06/1985 is read as 15 June, never as a US-style month/day date.
+A date in any other form (for example 06/15/1985 or 15/06/85) isn't
+guessed: that row goes to the error file with the reason "Can't read
+the date".
 
 Episode Start Date and Episode Stop Date can't be in the future or
 before 1990. If Episode Start Date is blank, the import uses today's
