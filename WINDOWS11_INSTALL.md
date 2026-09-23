@@ -2,6 +2,8 @@
 
 This is a step-by-step guide to a fresh install on a Windows 11 machine. It
 assumes no existing iDART installation and no existing PostgreSQL server.
+It is for iDART 3.9.0, the version shown on the login screen;
+[CHANGELOG.md](CHANGELOG.md) lists what changed from 3.8.1.
 
 **Known-good file set**, if you just want exact versions to grab without
 reading the reasoning below: Temurin **JDK 8** (any `8u5xx` build, Windows,
@@ -217,9 +219,27 @@ investigating before continuing.
 
 ### 4.3 Point the app at the migrated database
 
-There's no in-app "change database" menu — the connection settings
-screen only appears automatically, when the app can't reach its
-currently configured database at all. To reach it deliberately:
+iDART opens the database named in its settings: the name typed into the
+installer, unless it was later changed in the connection settings
+wizard. To check which one that is, look near the top of `idart.log` in
+the install folder for a line like `Opening JDBC connection to
+jdbc:postgresql://localhost:5432/pharm`.
+
+**Simplest: rename the databases.** Give the migrated database the name
+iDART already uses, and keep the old one under a new name. Close iDART
+and pgAdmin first (PostgreSQL won't rename a database that has open
+connections), then in Command Prompt, where `pharm` is the name iDART
+uses:
+```
+"C:\Program Files\PostgreSQL\<new-version>\bin\psql" -h localhost -p <new-port> -U postgres -d postgres -c "ALTER DATABASE pharm RENAME TO pharm_old;" -c "ALTER DATABASE pharm_migrated RENAME TO pharm;"
+```
+Then start iDART. To go back, run the same two renames the other way
+round.
+
+**Or change iDART's settings.** There's no in-app "change database"
+menu — the connection settings screen only appears automatically, when
+the app can't reach its currently configured database at all. To reach
+it deliberately:
 1. Stop the *new* PostgreSQL service (Services app →
    `postgresql-x64-<new-version>` → Stop).
 2. Launch iDART — it should fail to connect and open the **Database
@@ -231,9 +251,9 @@ currently configured database at all. To reach it deliberately:
    `pharm_migrated`), confirm host/username, and enter the password.
 5. Finish the wizard.
 
-Once iDART has opened the migrated database, the **Backup iDART
-database** shortcut backs that one up too: each time iDART starts, it
-sets the database settings in `backup.bat` to the database it opened.
+Either way, the **Backup iDART database** shortcut backs up the
+migrated database too: each time iDART starts, it sets the database
+settings in `backup.bat` to the database it opened.
 
 This same wizard also offers to *create* a fresh database if it finds
 one empty — it checks for existing rows in the `users` table first, so
@@ -297,6 +317,18 @@ A small gap (new side lower) on high-churn tables like `prescription`/
 after the dump was taken — re-run the old-side count to confirm it's
 still climbing, rather than assuming data was lost in the restore.
 
+**Repeated package IDs are normal in older data.** Older versions of
+iDART could give two packages the same ID: the package number went back
+to 1 after package 10, and a package made to replace a returned one
+reused its number. iDART 3.9.0 handles these in its reports and when
+scanning packages, and numbers new packages after the highest number
+already used on each prescription, so there is nothing to fix. To see
+how many IDs repeat:
+```sql
+SELECT COUNT(*) AS repeated_package_ids
+FROM (SELECT packageid FROM package GROUP BY packageid HAVING COUNT(*) > 1) r;
+```
+
 **For the real cutover** (not a test/rehearsal run): repeat this whole
 process with a dump taken at the actual switch-over moment, with
 dispensing paused on the old system for the few minutes between taking
@@ -343,7 +375,8 @@ and keep copies somewhere other than this PC.
 
 The backup is always of the database iDART uses: each time iDART starts,
 it updates the database settings in `backup.bat` to match its own, so
-don't edit those lines by hand.
+don't edit those lines by hand. When it changes them, `idart.log` records
+a line such as `Pointed backup.bat at database pharm on localhost.`
 
 If the window says it couldn't find `pg_dump.exe`, PostgreSQL is installed
 somewhere other than `C:\Program Files\PostgreSQL`: open `backup.bat` in
@@ -571,6 +604,23 @@ current checkout, or get a freshly built jar.
   doesn't match. If `idart.log` has an "Error opening Excel file" entry,
   it's the format: save it as "Excel 97-2003 Workbook (*.xls)". If not,
   check the sheet name — a generated template's sheet is called `Sheet1`.
+
+**iDART shows old or unexpected data after a migration or restore**
+It is most likely opening a different database from the one you
+restored into. Section 4.3 shows how to check which database iDART opens
+and how to switch it.
+
+**"An error has occurred in iDART that requires it to restart" on the Package Tracking report, or "Cannot Save Scanned Out Packages"**
+Both were caused by two packages sharing a package ID, which older
+versions of iDART created (see section 4.5), and both are fixed in
+3.9.0. On an older build, the Package Tracking report crashes for such a
+patient, and Scan Out Packages to Patients can't save the collection,
+shows the wrong next collection date, or crashes when the collection
+date is changed. Install 3.9.0.
+
+**Drop-down boxes show an empty grey square instead of an arrow**
+Seen on Windows 11 with builds older than 3.9.0. The box still opens
+when you click the square; 3.9.0 draws the arrow.
 
 **Installer or app won't start / GUI looks broken**
 This build targets a modern 64-bit Java 8 runtime specifically — confirm
