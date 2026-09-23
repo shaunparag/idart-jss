@@ -1,56 +1,81 @@
-A short guide to using the export. 
+Importing patients into iDART
+=============================
 
-A template should be available with all possible columns. Most of the columns are self explanatory. 
+1. GET A TEMPLATE FROM IDART
+----------------------------
+In iDART go to General Admin -> Generate import template, and save the
+file. Always start from a template made this way: its ID columns match
+the patient ID types set up in your database.
 
-CLINIC NAMES
-------------
-If the clinic name in the import file does not match and existing Clinic in iDART then
-a new Clinic will be created.
+If your iDART folder still has an import.xls from an older version,
+don't use it. Its column names no longer match, and the import rejects
+it with "Import is missing compulsory columns".
 
-CAPTURING ADDRESS
-----------------
-The Address fields are usually used for separate parts of the address however, you 
-wish to capture more than 1 address (postal and residential), then a full address can 
-be captured in each field. e.g. postal in Address 1 and residential in Address 2.
+2. FILL IT IN
+-------------
+- Row 1 holds the column headings. Leave them as they are. Headings
+  are not case sensitive, but they must be spelled the same.
+- Rows 2 and 3 describe what each column needs. Delete them before
+  importing. If you leave them in, the import reports them as 2 errors
+  (the patients below them still import).
+- Enter one patient per row.
+- Each patient needs at least one of the ID columns and a Clinic.
+  Also fill in First Name, Last Name, DOB and Sex.
 
-CAPTURING NEXT OF KIN
-------------------------
-Since iDART only saves the treatment supporter name and contact details, 
-the extra fields (next of kin relationship and next of kin address) will be saved 
-in the existing fields. For example, if the next of kin name is "john doe" and the 
-relationship is mother then the treatment supporter name will be "John Doe (mother)". 
-Likewise, the address is saved with the contact number.
+3. SAVE AS .XLS
+---------------
+The import only reads the older Excel format:
+- Excel: File -> Save As -> "Excel 97-2003 Workbook (*.xls)".
+- LibreOffice or OpenOffice: Save As -> "Excel 97-2003 (.xls)".
+An .xlsx file is rejected with "Unable to open the Excel sheet".
 
-EPISODE START DATE
------------------- 
-If the "Episode Start Date" column is not present the import will use the current
-date as the episode start date.
+4. IMPORT
+---------
+General Admin -> Import patients. Choose the file, then enter the sheet
+name when asked (a generated template's sheet is called Sheet1).
+"Unable to open the Excel sheet" means the file isn't .xls or the sheet
+name doesn't match.
 
-ARV START DATE
--------------- 
-Sometimes the ARV start date is recorded but the episode start date is not. 
-In this case, if you would like to set the episode start date to the ARV start date, 
-create a column called "Episode Start Date" in the template and copy 
-the ARV start date Values into this column.
+When the import finishes, iDART says how many rows had errors and
+offers to open the error file. Rows with errors are not imported. They
+are copied, with a "Reason for Error" column, to a file named
+idart-<number>-exportErrors.xls in the iDART install folder. Correct
+the rows in that file and import it the same way; the Reason for Error
+column is ignored.
 
-COLUMN HEADINGS
---------------- 
-The column headings in the template are NOT case sensitive. However, they are 
-spelling sensitive so be careful.
+More detail about errors, particularly about dates, may be in idart.log
+in the iDART install folder.
 
-USING OPENOFFICE
----------------- 
-If you do not have access to Microsoft excel, use open office to create the import file. 
-When you have completed, save the file as an excel document. The import should then
- be able to read the file. The import will only read .xls files
- 
-CAPTURING EXTRA DATA 
------------------------
-There are some extra fields available such as the "episode start notes" and  
-"address 3", so if want to capture extra data, you can use these fields. 
-For anything else, it will need to be added via changes in the source code.
+DATES
+-----
+Type dates so that Excel recognises them as dates. Otherwise type them
+as text in one of these forms: 15 Jun 1985, 1985/06/15 or 15-06-1985.
+Other text forms, such as 15/06/1985 or 1985-06-15, can be read as the
+wrong date without any error, so check a few imported patients' dates
+afterwards.
 
-ADDITIONAL ERRORS
------------------
-There may be additional error information in the iDART log file. Particularly
-regarding dates.
+Episode Start Date and Episode Stop Date can't be in the future or
+before 1990. If Episode Start Date is blank, the import uses today's
+date.
+
+OTHER COLUMNS
+-------------
+- ID columns: can't contain the characters ' ` or ^, and can't already
+  belong to another patient.
+- Sex: F, Female, M, Male, U or Unknown. Blank means Unknown.
+- Clinic: capitals don't matter, but otherwise the name must match an
+  existing clinic exactly. A name that doesn't match creates a new
+  clinic, so check the spelling.
+- Province: blank, or one of the provinces iDART lists.
+- Episode Start Reason: blank (means New Patient), or one of the
+  reasons iDART lists, such as New Patient, Transferred In or
+  Restart ART.
+- Episode Stop Date / Episode Stop Reason: only for patients who are no
+  longer on treatment at this pharmacy.
+- Next of kin name / Next of kin contact number: saved as the
+  patient's treatment supporter.
+- (ARV Start Date): the date the patient started ARVs.
+- Address 1, 2 and 3 can each hold a full address if you need more
+  than one (for example postal in Address 1, residential in Address 2).
+  Address 3 and Episode Start Notes can also hold other information
+  that has no column of its own.

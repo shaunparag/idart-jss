@@ -179,7 +179,6 @@
 				<include name="*.dll" />
 				<include name="*.ico" />
 				<include name="*.png" />
-				<include name="*.xls"/>
 				<include name="Import_README.txt"/>
 			</fileset>
 
@@ -188,7 +187,6 @@
 				<include name="*.sh" />
 				<include name="*.so" />
 				<include name="*.png" />
-				<include name="*.xls"/>
 				<include name="Cell-Life.desktop" />
 				<include name="Import_README.txt"/>
 			</fileset>

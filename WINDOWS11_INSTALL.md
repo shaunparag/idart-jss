@@ -539,6 +539,18 @@ loader expects). If you hit this, you're most likely running an installer
 jar built before that fix — rebuild with `ant generateInstaller` from a
 current checkout, or get a freshly built jar.
 
+**Patient import: "Import is missing compulsory columns" or "Unable to open the Excel sheet"**
+- "Missing compulsory columns": the spreadsheet wasn't made from this
+  database's template — most often it's the old `import.xls` that earlier
+  versions put in the install folder. Use **General Admin → Generate
+  import template** instead, and follow `Import_README.txt` in the
+  install folder.
+- "Unable to open the Excel sheet": the file isn't in the older `.xls`
+  format (for example it's an `.xlsx`), or the sheet name you typed
+  doesn't match. If `idart.log` has an "Error opening Excel file" entry,
+  it's the format: save it as "Excel 97-2003 Workbook (*.xls)". If not,
+  check the sheet name — a generated template's sheet is called `Sheet1`.
+
 **Installer or app won't start / GUI looks broken**
 This build targets a modern 64-bit Java 8 runtime specifically — confirm
 you installed Temurin 8 (not a 32-bit build, not a different major
