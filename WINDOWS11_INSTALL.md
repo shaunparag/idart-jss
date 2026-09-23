@@ -231,6 +231,10 @@ currently configured database at all. To reach it deliberately:
    `pharm_migrated`), confirm host/username, and enter the password.
 5. Finish the wizard.
 
+Once iDART has opened the migrated database, the **Backup iDART
+database** shortcut backs that one up too: each time iDART starts, it
+sets the database settings in `backup.bat` to the database it opened.
+
 This same wizard also offers to *create* a fresh database if it finds
 one empty — it checks for existing rows in the `users` table first, so
 a populated migrated database is correctly detected as already set up
@@ -335,6 +339,10 @@ and keep copies somewhere other than this PC.
    doesn't delete your backups.
 4. Copy the file off this PC (USB drive or network folder) — a backup on
    the same disk doesn't survive a disk failure or a stolen PC.
+
+The backup is always of the database iDART uses: each time iDART starts,
+it updates the database settings in `backup.bat` to match its own, so
+don't edit those lines by hand.
 
 If the window says it couldn't find `pg_dump.exe`, PostgreSQL is installed
 somewhere other than `C:\Program Files\PostgreSQL`: open `backup.bat` in

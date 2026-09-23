@@ -12,7 +12,9 @@
 :: "Backing up and restoring" in WINDOWS11_INSTALL.md.
 ::
 :: The database settings below are filled in by the iDART
-:: installer.
+:: installer. Each time iDART starts, it sets them to the database
+:: it opened, so don't change them here: change the database in
+:: iDART's connection settings instead.
 ::
 :: Originally written by Nico Gevers, Cell-Life, September 2006.
 :: --------------------------------------------------------------
@@ -20,6 +22,7 @@
 setlocal
 
 set "dbHost=$dbAddress"
+set "dbPort=5432"
 set "dbName=$dbName"
 set "dbUser=$dbUser"
 
@@ -62,7 +65,7 @@ echo.
 echo When asked, enter the PostgreSQL password for user %dbUser%.
 echo.
 
-"%PG_DUMP%" -h %dbHost% -p 5432 -U %dbUser% -F c -Z 7 -f "%BACKUP_FILE%" %dbName%
+"%PG_DUMP%" -h %dbHost% -p %dbPort% -U %dbUser% -F c -Z 7 -f "%BACKUP_FILE%" %dbName%
 set "RESULT=%errorlevel%"
 
 :: One-line ifs rather than ( ) blocks, so a user folder name that

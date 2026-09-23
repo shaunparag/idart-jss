@@ -31,6 +31,7 @@ import org.celllife.idart.commonobjects.CommonObjects;
 import org.celllife.idart.commonobjects.LocalObjects;
 import org.celllife.idart.commonobjects.PropertiesManager;
 import org.celllife.idart.commonobjects.iDartProperties;
+import org.celllife.idart.database.BackupScript;
 import org.celllife.idart.database.ConnectException;
 import org.celllife.idart.database.DatabaseEmptyException;
 import org.celllife.idart.database.DatabaseException;
@@ -156,6 +157,9 @@ public class PharmacyApplication {
 			showStartupErrorDialog(msg + e.getMessage());
 			System.exit(1);
 		}
+		
+		// the wizard may have just changed the database
+		BackupScript.pointAtCurrentDatabase();
 		
 		loginLoad.updateProgress(30);
 		
