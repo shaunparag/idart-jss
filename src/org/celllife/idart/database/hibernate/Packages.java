@@ -24,6 +24,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -42,6 +44,8 @@ import org.hibernate.annotations.IndexColumn;
 @Entity
 @Table(name = "Package")
 public class Packages {
+
+	private static final Pattern ISSUE_NO = Pattern.compile("-(\\d{1,9})$");
 
 	@Id
 	@GeneratedValue
@@ -503,6 +507,15 @@ public class Packages {
 		this.drugTypes = drugTypes;
 	}
 	
+	/**
+	 * Returns the package's number on its prescription, e.g. 12 for
+	 * 240703A-00013-12, or 0 if the package ID doesn't end in one.
+	 */
+	public int getIssueNo() {
+		Matcher number = ISSUE_NO.matcher(packageId == null ? "" : packageId);
+		return number.find() ? Integer.parseInt(number.group(1)) : 0;
+	}
+
 	public int getNextIssueNo() {
 		if(packageId == null || "".equalsIgnoreCase(packageId)) {
 			return 1;
@@ -515,8 +528,7 @@ public class Packages {
 			else {
 				months = weekssupply / 4;
 			}
-		///	char c = packageId.charAt(packageId.length() - 1);
-			return (Character.getNumericValue(packageId.charAt(packageId.length() - 1)) + months );
+			return getIssueNo() + months;
 		}
 	}
 	

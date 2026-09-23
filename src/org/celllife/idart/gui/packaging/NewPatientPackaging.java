@@ -2246,12 +2246,10 @@ public class NewPatientPackaging extends GenericFormGui implements
 		}
 		int dur = newPack.getPrescription().getDuration();
 		
-		// Set the default index to 1 
-		int index = 1;
-		
-		// Make sure that it is not a new prescription.
-		if(previousPack != null && (previousPack.getPrescription().getId() == newPack.getPrescription().getId()))
-			index = (previousPack.getNextIssueNo());
+		// numbered after every package already made on this prescription,
+		// so package IDs don't repeat
+		int index = PackageManager.getNextIssueNo(getHSession(),
+				newPack.getPrescription());
 
 		// if the prescription is valid less than one month
 		if (dur < 4) {

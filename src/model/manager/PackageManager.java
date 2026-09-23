@@ -851,22 +851,55 @@ public class PackageManager {
 	}
 
 	/**
-	 * Gets a specific package based on the packageId
-	 * 
+	 * Gets a specific package based on the packageId. Older versions of iDART
+	 * could give two packages the same ID, so if several have it, returns the
+	 * one waiting to be collected, else the most recently packed.
+	 *
 	 * @param session
 	 * @param packageId
 	 * @return Packages
 	 * @throws HibernateException
 	 */
+	@SuppressWarnings("unchecked")
 	public static Packages getPackage(Session session, String packageId)
 			throws HibernateException {
-		Packages result;
-		result = (Packages) session
+		List<Packages> packages = session
 				.createQuery(
 						"select pack from Packages as pack where "
-								+ "pack.packageId = :packageId")
-				.setString("packageId", packageId.toUpperCase()).uniqueResult();
-		return result;
+								+ "pack.packageId = :packageId "
+								+ "order by pack.packDate desc, pack.id desc")
+				.setString("packageId", packageId.toUpperCase()).list();
+		for (Packages pack : packages) {
+			if (pack.getPickupDate() == null && pack.getDateReturned() == null) {
+				return pack;
+			}
+		}
+		return packages.isEmpty() ? null : packages.get(0);
+	}
+
+	/**
+	 * Returns the number for the next package on a prescription: after the
+	 * furthest any of its packages reaches (its number plus the months it
+	 * supplies), so package IDs don't repeat.
+	 *
+	 * @param session
+	 * @param prescription
+	 * @return the next package number, 1 for a prescription with no packages
+	 * @throws HibernateException
+	 */
+	@SuppressWarnings("unchecked")
+	public static int getNextIssueNo(Session session, Prescription prescription)
+			throws HibernateException {
+		List<Packages> packages = session
+				.createQuery(
+						"select pack from Packages as pack where "
+								+ "pack.prescription = :prescription")
+				.setEntity("prescription", prescription).list();
+		int next = 1;
+		for (Packages pack : packages) {
+			next = Math.max(next, pack.getNextIssueNo());
+		}
+		return next;
 	}
 
 	// --------- METHODS FOR PACKAGES LEAVING MANAGER
