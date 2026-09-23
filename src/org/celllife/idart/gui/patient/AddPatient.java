@@ -1519,7 +1519,7 @@ public class AddPatient extends GenericFormGui implements iDARTChangeListener {
 					&& localPatient.getCurrentClinic().isMainClinic()
 					&& (mostRecentEpisode != null && mostRecentEpisode.isOpen())) {
 				btnDownRefer.setEnabled(true);
-			} else {
+			} else if (btnDownRefer != null) {
 				btnDownRefer.setEnabled(false);
 			}
 
@@ -1540,7 +1540,7 @@ public class AddPatient extends GenericFormGui implements iDARTChangeListener {
 			}
 
 		} catch (Exception e) {
-			getLog().error(e);
+			getLog().error("Error loading patient details", e); //$NON-NLS-1$
 		}
 	}
 
