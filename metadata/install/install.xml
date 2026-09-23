@@ -199,6 +199,8 @@
 				os="windows" />
 			<parsable targetfile="$INSTALL_PATH/launcher.bat" type="plain"
 				os="windows" />
+			<parsable targetfile="$INSTALL_PATH/backup.bat" type="plain"
+				os="windows" />
 			<parsable targetfile="$INSTALL_PATH/uninstall.sh" type="shell"
 				os="unix" />
 			<parsable targetfile="$INSTALL_PATH/go.sh" type="shell" os="unix" />

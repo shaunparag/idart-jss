@@ -36,7 +36,28 @@
 		encoding="UTF-8"
 		description="Uninstall">
 		<createForPack name="Core" />
-	</shortcut>	
+	</shortcut>
+
+	<!-- Opens a console window (initialState normal) because pg_dump
+	     asks for the database password there. -->
+	<shortcut
+		name="Backup iDART database"
+		programGroup="yes"
+		desktop="no"
+		applications="no"
+		startMenu="no"
+		startup="no"
+		target="$INSTALL_PATH\backup.bat"
+		workingDirectory="$INSTALL_PATH"
+		commandLine=""
+		initialState="normal"
+		iconFile="$INSTALL_PATH\cLogo.ico"
+		iconIndex="0"
+		type="Application"
+		encoding="UTF-8"
+		description="Back up the iDART database to the iDART-backups folder in your user profile">
+		<createForPack name="Core" />
+	</shortcut>
 	
 	
 	
