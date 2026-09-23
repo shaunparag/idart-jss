@@ -8,8 +8,8 @@
 		<param name="Threshold" value="debug" />
 		<param name="File" value="idart.log" />
 		<param name="Append" value="true" />
-		<param name="MaxFileSize" value="100KB" />
-		<param name="MaxBackupIndex" value="3" />
+		<param name="MaxFileSize" value="1MB" />
+		<param name="MaxBackupIndex" value="5" />
 		<layout class="org.apache.log4j.PatternLayout">
 			<param name="ConversionPattern"
 				value="%d{dd-MM-yyyy HH:mm:ss} [%t] %-5p %30.30c - %m%n" />

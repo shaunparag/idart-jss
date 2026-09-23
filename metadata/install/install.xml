@@ -235,7 +235,7 @@
 			<file targetdir="$INSTALL_PATH/lib" os="windows" src="lib/swt_win/swt.jar" />
 			<file targetdir="$INSTALL_PATH/lib" os="unix" src="lib/swt_gtk/swt.jar" />
 		</pack>
-		<pack name="Source" required="no">
+		<pack name="Source" required="no" preselected="no">
 			<description>iDART source files.</description>
 			<fileset dir="" targetdir="$INSTALL_PATH">
 				<include name="src/**/*" />
