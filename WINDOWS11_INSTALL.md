@@ -238,7 +238,14 @@ and this step is skipped automatically. It will not overwrite anything.
 
 ### 4.4 Liquibase checksum validation failure on a real migration
 
-If you hit the `ValidationFailedException` error described in
+Databases from the 2012 iDART builds hold different checksums for
+changesets 3.8.2 and 3.8.4 of `changelog-3.8.xml` than this build
+computes. The files are the same; the 2012 builds shipped them with
+Windows line endings, and changesets defined via `sqlFile`/`loadData`
+checksum the *referenced* file's exact bytes. Current builds accept those
+two automatically, so a migrated database opens without a manual step.
+
+If you still hit the `ValidationFailedException` error described in
 Troubleshooting below, but you're certain the database is a legitimate
 migration (not an accidental point-at-an-old-deployment mistake covered
 by that entry), check `idart.log` in the install folder for the specific
@@ -248,19 +255,18 @@ Validation Failed:
      2 change sets check sum
           org/celllife/idart/database/changelog-3.8.xml::3.8.2::simon@cell-life.org is now: 3:...
 ```
-This happens when a changeset's checksum was computed against an older,
-byte-different-but-functionally-identical copy of a file it references
-(changesets defined via `sqlFile`/`loadData` checksum the *referenced*
-file's exact bytes, not just its effect) — in practice this has traced
-back to formatting differences from this codebase's original SVN-to-git
-import, not a real content change. Verify before dismissing it: compare
-what the referenced file would actually do against what's already in the
-target database (e.g. for a function-altering changeset, compare its SQL
-against the live function definition).
+- If it lists only 3.8.2 and 3.8.4, that PC has an older build. Install
+  the current one, or use the fix below.
+- Anything else is a real difference between the code and the database.
+  Verify it before dismissing it: compare what the referenced file would
+  actually do against what's already in the target database (e.g. for a
+  function-altering changeset, compare its SQL against the live function
+  definition).
 
 Once confirmed benign, accept the current files as correct for just
 those specific rows. This does not re-run them or touch any data — only
-Liquibase's own bookkeeping table:
+Liquibase's own bookkeeping table, which iDART refills with the current
+checksums on its next start:
 ```sql
 UPDATE databasechangelog
 SET md5sum = NULL
@@ -478,9 +484,9 @@ step 3) to get the app running.
 If you're deliberately migrating an older deployment's real data, see
 section 4 for the full procedure — this same error can show up
 legitimately even on a correct migration; section 4.4 covers the actual
-cause (a changeset checksum mismatch tied to how a couple of migration
-files were imported into this repository years ago, not a data problem)
-and the fix. Don't attempt a real migration by just pointing the
+cause (a checksum mismatch on two changesets whose files the 2012 builds
+shipped with Windows line endings, not a data problem), which current
+builds accept automatically, and the fix for older builds. Don't attempt a real migration by just pointing the
 installer at an old database and working through wizard errors as they
 come — section 4 exists because that approach doesn't give you a way to
 tell a benign checksum mismatch apart from a real one.

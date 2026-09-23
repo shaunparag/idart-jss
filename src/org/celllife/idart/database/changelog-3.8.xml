@@ -34,6 +34,8 @@
 			baseTableName="chemicalcompound" referencedColumnNames="id" />
 	</changeSet>
 	<changeSet author="simon@cell-life.org" id="3.8.2">
+		<!-- Databases from the 2012 builds hold a checksum of this file with Windows line endings -->
+		<validCheckSum>1:any</validCheckSum>
 		<comment>improvement to add_sched_visit trigger</comment>
 		<sqlFile splitStatements="false" stripComments="false"
 			path="org/celllife/idart/database/3_8_2-add_sched_visit.sql" />
@@ -43,6 +45,8 @@
 		<dropUniqueConstraint tableName="atccode" constraintName="atccode_mims_key"/>
 	</changeSet>
 	<changeSet author="simon@cell-life.org" id="3.8.4">
+		<!-- Databases from the 2012 builds hold a checksum of the CSV with Windows line endings -->
+		<validCheckSum>1:any</validCheckSum>
 		<comment>load atc codes</comment>
 		<loadData tableName="atccode" file="org/celllife/idart/database/3_8_4-atc_codes.csv">
     		<column name="id" type="NUMERIC" index="0"/>
