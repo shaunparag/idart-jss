@@ -35,10 +35,11 @@ public abstract class HibernateTest extends IDARTtest {
 		utils = new TestUtilities();
 	}
 
-	@Override
+	// Not an override of initialiseIDARTSystem: TestNG runs one @BeforeSuite
+	// method per name, and which class's version ran depended on class order.
 	@BeforeSuite
-	public void initialiseIDARTSystem() throws Exception {
-		super.initialiseIDARTSystem();
+	public void initialiseDatabase() throws Exception {
+		initialiseIDARTSystem();
 		try {
 			log.info("Checking database");
 			DatabaseTools._().checkDatabase();
