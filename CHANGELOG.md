@@ -98,7 +98,9 @@ inactive, is added by iDART itself the first time it opens the database. See
   visits that belong to no patient. The database records one each time
   stock is destroyed, and older versions of iDART left some with a date,
   which made the report fail and restart iDART.
-- The Cohorts report runs (its query had a syntax error).
+- The Cohorts report runs (its query had a syntax error). Its Excel Report
+  button, which did nothing, is gone: View Report saves the report as a CSV
+  file, which opens in Excel.
 - The report viewer opens maximised, and neither viewing a report with data
   nor closing the viewer crashes any more.
 - View Report and Close are no longer cut off on date-range reports.

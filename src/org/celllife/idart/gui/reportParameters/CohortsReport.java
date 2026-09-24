@@ -50,7 +50,6 @@ import org.celllife.idart.misc.SafeSaveDialog.FileType;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
@@ -67,8 +66,6 @@ public class CohortsReport extends GenericReportGui {
 	private CCombo cmbMonth;
 
 	private CCombo cmbYear;
-
-	private Button btnExcelReport;
 
 	/**
 	 * Constructor
@@ -177,17 +174,6 @@ public class CohortsReport extends GenericReportGui {
 	 */
 	@Override
 	protected void createCompButtons() {
-		btnExcelReport = new Button(getCompButtons(), SWT.NONE);
-		btnExcelReport.setText("Excel Report");
-		btnExcelReport.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
-		btnExcelReport
-		.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
-			@Override
-			public void widgetSelected(
-					org.eclipse.swt.events.SelectionEvent e) {
-				cmdExcelReportWidgetSelected();
-			}
-		});
 	}
 
 	@Override
@@ -256,14 +242,6 @@ public class CohortsReport extends GenericReportGui {
 	@Override
 	protected void cmdCloseWidgetSelected() {
 		cmdCloseSelected();
-	}
-
-	/**
-	 * This method is called when the user presses "Excel" button
-	 * 
-	 */
-	private void cmdExcelReportWidgetSelected() {
-
 	}
 
 	protected void runReport(String filename) {
