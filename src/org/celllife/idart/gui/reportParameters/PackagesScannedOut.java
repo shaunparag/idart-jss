@@ -347,7 +347,7 @@ public class PackagesScannedOut extends GenericReportGui {
 				.viewPatientCollectionSheet(selectedPatientIds);
 
 			} catch (Exception e) {
-				getLog().error(e.getStackTrace());
+				getLog().error("Error printing collection sheets.", e);
 			}
 
 		}

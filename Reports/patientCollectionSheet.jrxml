@@ -16,15 +16,18 @@
 	</parameter>
 	<queryString>
 		<![CDATA[SELECT
-     patient."idnum" AS patient_idnum,
+     -- the National ID Number: iDART 3.7 moved patient.idnum to the patient's identifiers
+     (select pi."value" from "patientidentifier" pi
+          where pi."patient_id" = patient."id" and pi."type_id" = 3
+          order by pi."id" limit 1) AS patient_idnum,
      patient."lastname" AS patient_lastname,
      patient."firstnames" AS patient_firstnames,
      patient."homephone" AS patient_homephone,
      patient."dateofbirth" AS patient_dateofbirth,
      patient."sex" AS patient_sex,
-     patient."address1" AS patient_address1,
-     patient."address2" AS patient_address2,
-     patient."address3" AS patient_address3,
+     concat_ws(', ', nullif(trim(patient."address1"), ''),
+          case when length(trim(patient."address2")) > 1 then trim(patient."address2") end,
+          case when length(trim(patient."address3")) > 1 then trim(patient."address3") end) AS patient_address,
      patient."patientid" AS patient_patientid,
      patient."workphone" AS patient_workphone,
      patient."id" AS patient_id,
@@ -60,9 +63,7 @@ where patient.patientid = $P{patientid}]]>
 	<field name="patient_homephone" class="java.lang.String"/>
 	<field name="patient_dateofbirth" class="java.sql.Timestamp"/>
 	<field name="patient_sex" class="java.lang.String"/>
-	<field name="patient_address1" class="java.lang.String"/>
-	<field name="patient_address2" class="java.lang.String"/>
-	<field name="patient_address3" class="java.lang.String"/>
+	<field name="patient_address" class="java.lang.String"/>
 	<field name="patient_patientid" class="java.lang.String"/>
 	<field name="patient_workphone" class="java.lang.String"/>
 	<field name="patient_id" class="java.lang.Integer"/>
@@ -131,7 +132,7 @@ where patient.patientid = $P{patientid}]]>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement key="textField-4" isPrintRepeatedValues="false" x="174" y="32" width="182" height="16"/>
 					<box leftPadding="5">
 						<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
@@ -157,7 +158,7 @@ where patient.patientid = $P{patientid}]]>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement key="textField-5" isPrintRepeatedValues="false" x="174" y="48" width="182" height="16"/>
 					<box leftPadding="5">
 						<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
@@ -183,7 +184,7 @@ where patient.patientid = $P{patientid}]]>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement key="textField-6" isPrintRepeatedValues="false" x="174" y="64" width="182" height="16"/>
 					<box leftPadding="5">
 						<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
@@ -209,7 +210,7 @@ where patient.patientid = $P{patientid}]]>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement key="textField-7" isPrintRepeatedValues="false" x="174" y="80" width="182" height="16"/>
 					<box leftPadding="5">
 						<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
@@ -235,7 +236,7 @@ where patient.patientid = $P{patientid}]]>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement key="textField-8" isPrintRepeatedValues="false" x="174" y="112" width="182" height="16"/>
 					<box leftPadding="5">
 						<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
@@ -261,7 +262,7 @@ where patient.patientid = $P{patientid}]]>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement key="textField-9" isPrintRepeatedValues="false" x="174" y="128" width="182" height="16"/>
 					<box leftPadding="5">
 						<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
@@ -287,7 +288,7 @@ where patient.patientid = $P{patientid}]]>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement key="textField-10" isPrintRepeatedValues="false" x="174" y="144" width="182" height="16"/>
 					<box leftPadding="5">
 						<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
@@ -313,7 +314,7 @@ where patient.patientid = $P{patientid}]]>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement key="textField-11" isPrintRepeatedValues="false" x="174" y="160" width="182" height="16"/>
 					<box leftPadding="5">
 						<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
@@ -324,7 +325,7 @@ where patient.patientid = $P{patientid}]]>
 					<textElement verticalAlignment="Middle">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.String"><![CDATA[$F{patient_address1}  + ($F{patient_address2}.length() > 1 ? ", " + $F{patient_address2} : "" )+ ($F{patient_address3}.length() > 1 ? ", " + $F{patient_address3} : "")]]></textFieldExpression>
+					<textFieldExpression class="java.lang.String"><![CDATA[$F{patient_address}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
 					<reportElement key="textField-40" isPrintRepeatedValues="false" x="356" y="160" width="181" height="16"/>
@@ -339,7 +340,7 @@ where patient.patientid = $P{patientid}]]>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement key="textField-12" isPrintRepeatedValues="false" x="174" y="176" width="182" height="16"/>
 					<box leftPadding="5">
 						<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
@@ -365,7 +366,7 @@ where patient.patientid = $P{patientid}]]>
 					</textElement>
 					<textFieldExpression class="java.lang.String"><![CDATA[""]]></textFieldExpression>
 				</textField>
-				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
+				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement key="textField-13" isPrintRepeatedValues="false" x="174" y="192" width="182" height="16"/>
 					<box leftPadding="5">
 						<topPen lineWidth="0.75" lineStyle="Solid" lineColor="#000000"/>
@@ -454,7 +455,7 @@ where patient.patientid = $P{patientid}]]>
 					<textElement verticalAlignment="Middle">
 						<font size="8"/>
 					</textElement>
-					<textFieldExpression class="java.lang.String"><![CDATA[($F{patient_sex}.toCharArray()[0] == 'F' ? "Female" : ($F{patient_sex}.toCharArray()[0] == 'M' ? "Male" : "Unknown"))]]></textFieldExpression>
+					<textFieldExpression class="java.lang.String"><![CDATA[("F".equals($F{patient_sex}) ? "Female" : ("M".equals($F{patient_sex}) ? "Male" : "Unknown"))]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="false">
 					<reportElement key="textField-45" isPrintRepeatedValues="false" x="356" y="96" width="181" height="16"/>

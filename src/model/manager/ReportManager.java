@@ -69,9 +69,10 @@ public class ReportManager {
 
 	private Thread thread;
 
-	boolean reportFinished = false;
+	// set by the thread that fills the report, read by the UI thread
+	volatile boolean reportFinished = false;
 
-	boolean reportGenerationCancelled = false;
+	volatile boolean reportGenerationCancelled = false;
 
 	boolean longQueryFinished = false;
 
@@ -83,7 +84,7 @@ public class ReportManager {
 
 	private Session hSession = null;
 
-	private JasperPrint jp;
+	private volatile JasperPrint jp;
 
 	private ArrayList<JasperPrint> reportList;
 
@@ -156,8 +157,11 @@ public class ReportManager {
 		map = new HashMap();
 
 		reportList = new ArrayList();
+		List<String> notMade = new ArrayList<String>();
 
 		for (String patientId : patientList) {
+			boolean made = false;
+			jp = null;
 			try {
 				map.put("path", n.getCanonicalPath());
 				map.put("patientid", patientId);
@@ -168,7 +172,7 @@ public class ReportManager {
 						+ "patientCollectionSheet.jasper");
 				// Define the connection
 				connection = JDBCUtil.currentSession();
-				addReportToQueue();
+				made = addReportToQueue();
 
 			} catch (IOException e) {
 				log.error("Error reading report file.", e);
@@ -178,13 +182,42 @@ public class ReportManager {
 						"Error getting connection to database while generating report.",
 						e);
 			}
+			if (reportGenerationCancelled) {
+				return;
+			}
+			if (!made) {
+				// with no error logged, the patient's latest prescription has no package
+				log.warn("No collection sheet made for patient " + patientId
+						+ (jp != null ? ": the report has no pages." : "."));
+				notMade.add(patientId);
+			}
 		}
-		viewBatchReport();
+		if (!notMade.isEmpty()) {
+			MessageBox mNotMade = new MessageBox(parent, SWT.ICON_ERROR | SWT.OK);
+			mNotMade.setText("Collection Sheets");
+			mNotMade.setMessage("No collection sheet could be made for "
+					+ (notMade.size() == 1 ? "patient " : "patients ")
+					+ String.join(", ", notMade)
+					+ ".\n\nThe reason is in idart.log.");
+			mNotMade.open();
+		}
+		if (!reportList.isEmpty()) {
+			viewBatchReport();
+		}
 	}
 
-	public void addReportToQueue() {
+	/**
+	 * Fills the report set up in map, fileInputStream and connection while
+	 * showing a progress dialog, and queues it for viewBatchReport.
+	 *
+	 * @return true if the report was queued, false if it failed, has no pages
+	 *         or was cancelled
+	 */
+	public boolean addReportToQueue() {
 		reportFinished = false;
 		reportGenerationCancelled = false;
+		jp = null;
+		final Display display = parent.getDisplay();
 
 		thread = new Thread() {
 			@Override
@@ -192,27 +225,28 @@ public class ReportManager {
 				try {
 					jp = JasperFillManager.fillReport(fileInputStream, map,
 							connection);
-					reportFinished = true;
-					while (!reportFinished) {
-						sleep(1000);
-						reportFinished = true;
-					}
-
-				} catch (InterruptedException ex) {
-					reportGenerationCancelled = true;
 				} catch (JRException e) {
 					log.error("Error generating report.", e);
-					reportGenerationCancelled = true;
+				} catch (RuntimeException e) {
+					log.error("Error generating report.", e);
+				} finally {
+					// ends the wait in createLoadingBar, also when the report fails
+					reportFinished = true;
+					if (!display.isDisposed()) {
+						display.wake();
+					}
 				}
-
 			}
 
 		};
 		thread.setPriority(Thread.MAX_PRIORITY);
 		thread.start();
 		createLoadingBar();
+		if (reportGenerationCancelled || jp == null || jp.getPages().isEmpty()) {
+			return false;
+		}
 		reportList.add(jp);
-
+		return true;
 	}
 
 	/**
@@ -319,6 +353,21 @@ public class ReportManager {
 		Display.getCurrent().asyncExec(runner);
 	}
 
+	/**
+	 * Stops waiting for a report that is still being filled, and marks it
+	 * cancelled. Does nothing once the report has finished, successfully or
+	 * not.
+	 */
+	private void cancelReport() {
+		if (!reportFinished) {
+			reportGenerationCancelled = true;
+			reportFinished = true;
+			if (thread != null) {
+				thread.interrupt();
+			}
+		}
+	}
+
 	private void createLoadingBar() {
 		new ProgressMonitorDialog(parent);
 		Shell shell = new Shell(parent, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
@@ -326,10 +375,7 @@ public class ReportManager {
 		shell.addDisposeListener(new org.eclipse.swt.events.DisposeListener() {
 			@Override
 			public void widgetDisposed(org.eclipse.swt.events.DisposeEvent e) {
-				if (thread.isAlive()) {
-					thread.interrupt();
-					reportFinished = true;
-				}
+				cancelReport();
 			}
 		});
 		Label label = new Label(shell, SWT.NONE);
@@ -359,10 +405,7 @@ public class ReportManager {
 			@Override
 			public void widgetSelected(
 					org.eclipse.swt.events.SelectionEvent e) {
-				if ((thread != null) && thread.isAlive()) {
-					thread.interrupt();
-					reportFinished = true;
-				}
+				cancelReport();
 			}
 		});
 		shell.setSize(new Point(300, 200));

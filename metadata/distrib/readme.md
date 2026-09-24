@@ -43,7 +43,7 @@ ChangeLog
   Patients.
 * Fixes to Update Patient, cellphone numbers, facility details, patient
   import dates and several reports (Monthly Receipts and Issues, Cohorts,
-  the report viewer).
+  patient collection sheets, the report viewer).
 * Drop-down boxes show their arrow on Windows 11.
 
 The full list is in CHANGELOG.md in the iDART source repository.

@@ -69,6 +69,12 @@ data from older versions of iDART opens directly. See "Upgrading" below and
 - Package Tracking no longer crashes when a patient's packages share an ID,
   and a report error on that screen now shows a message instead of
   restarting iDART.
+- Print Collection Sheets works. It is on the Scan Out Packages to Down
+  Referral Clinic screen, which sites installed with the Online down
+  referral mode have. Since iDART 3.7 it had looked for the patient's ID
+  number where older versions kept it, so no sheet was made and the
+  "Please wait" box never closed. Blank details now print blank instead of
+  "null", and iDART names any patient it couldn't make a sheet for.
 - Monthly Receipts and Issues no longer fails with "column d.nsncode does
   not exist".
 - The Cohorts report runs (its query had a syntax error).

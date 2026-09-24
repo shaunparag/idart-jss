@@ -622,6 +622,16 @@ date is changed. Install 3.9.0.
 Seen on Windows 11 with builds older than 3.9.0. The box still opens
 when you click the square; 3.9.0 draws the arrow.
 
+**Print Collection Sheets never finishes, or says "No collection sheet could be made"**
+On builds older than 3.9.0, Print Collection Sheets (on the Scan Out
+Packages to Down Referral Clinic screen, in the Online down referral
+mode) never worked: the "Please wait while the report loads" box stays
+open, and `idart.log` shows `column patient.idnum does not exist`.
+Install 3.9.0. If 3.9.0 can't make
+a patient's sheet and `idart.log` says "the report has no pages", the
+patient's latest prescription has no package yet: a collection sheet is
+for the latest package on the latest prescription.
+
 **Installer or app won't start / GUI looks broken**
 This build targets a modern 64-bit Java 8 runtime specifically — confirm
 you installed Temurin 8 (not a 32-bit build, not a different major
