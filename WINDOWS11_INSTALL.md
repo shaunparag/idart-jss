@@ -317,6 +317,15 @@ A small gap (new side lower) on high-churn tables like `prescription`/
 after the dump was taken — re-run the old-side count to confirm it's
 still climbing, rather than assuming data was lost in the restore.
 
+**Check for records iDART can't open.** Older versions of iDART, and
+changes made directly in the database, can leave blanks and broken links
+that make a screen or report fail. [idart-data-check.sql](idart-data-check.sql)
+looks for them and only reads. In pgAdmin, open a Query Tool on the
+migrated database, open the file with the folder button, press Ctrl+A and
+then F5. Every row should show `found` = 0. Rows marked "(3.9.0 copes)"
+are only for information; for the others, `details` shows how many
+records are affected and a few examples.
+
 **Repeated package IDs are normal in older data.** Older versions of
 iDART could give two packages the same ID: the package number went back
 to 1 after package 10, and a package made to replace a returned one

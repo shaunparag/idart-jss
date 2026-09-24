@@ -35,7 +35,8 @@ reports, are made by iDART itself the first time it opens the database. See
 - Package IDs that repeat in older data no longer break reports or package
   scanning (see Dispensing).
 - The install guide covers moving data from an older installation,
-  checking it, and backups.
+  checking it, and backups. `idart-data-check.sql` lists any records in
+  the moved data that would stop a screen or report opening.
 
 ### Backups
 
