@@ -105,9 +105,10 @@ public class Search extends GenericOthersGui {
 	}
 
 	/**
-	 * Use this constructor where you need to specify whether the search
-	 * includes doctors /patients marked as inactive
-	 * 
+	 * Use this constructor where you need to specify whether a drug search
+	 * includes drugs marked as inactive. The first constructor leaves them
+	 * out.
+	 *
 	 * @param hSession
 	 *            Session
 	 * @param localShell
@@ -205,7 +206,7 @@ public class Search extends GenericOthersGui {
 			break;
 		case CommonObjects.DRUG:
 			searchList = SearchManager.loadDrugs(getHSession(), this, true,
-					true);
+					true, inactive);
 			break;
 		case CommonObjects.REGIMEN:
 			searchList = SearchManager.loadRegimens(getHSession(), this);

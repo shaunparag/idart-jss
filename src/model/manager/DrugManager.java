@@ -296,6 +296,22 @@ public class DrugManager {
 	}
 
 	/**
+	 * Returns the drugs that can be prescribed or received: those not marked
+	 * inactive
+	 *
+	 * @param sess
+	 * @return List<Drug>
+	 * @throws HibernateException
+	 */
+	@SuppressWarnings("unchecked")
+	public static List<Drug> getActiveDrugs(Session sess)
+			throws HibernateException {
+		return sess.createQuery(
+				"select d from Drug as d where d.active = true order by d.name")
+				.list();
+	}
+
+	/**
 	 * Method getChemicalCompoundByAcronym.
 	 * 
 	 * @param s

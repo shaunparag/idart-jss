@@ -275,8 +275,9 @@ public class PrescriptionObject extends GenericOthersGui {
 	}
 
 	private void cmdSearchWidgetSelected() {
+		// inactive drugs can't be added to prescriptions or drug groups
 		Search drugSearch = new Search(getHSession(), getShell(),
-				CommonObjects.DRUG);
+				CommonObjects.DRUG, false);
 		if (drugSearch.getValueSelected() != null) {
 			txtDrugName.setText(drugSearch.getValueSelected()[0]);
 			loadDrugInformation();

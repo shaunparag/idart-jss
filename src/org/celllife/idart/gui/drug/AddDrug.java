@@ -61,6 +61,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
@@ -90,6 +91,14 @@ public class AddDrug extends GenericFormGui {
 	private Button rdBtnSideTreatment;
 
 	private Button rdBtnARV;
+
+	private Button rdBtnActive;
+
+	private Button rdBtnInactive;
+
+	// the drug's status when it was loaded: fieldsOk copies the form into
+	// localDrug before the save is confirmed
+	private boolean loadedDrugActive;
 
 	private Text txtName;
 
@@ -207,7 +216,7 @@ public class AddDrug extends GenericFormGui {
 		grpDrugInfo.setText("Drug Details");
 		grpDrugInfo.setBounds(new Rectangle(18, 110, 483, 293));
 		GridLayout layout = new GridLayout(3, false);
-		layout.verticalSpacing = 10;
+		layout.verticalSpacing = 8;
 		grpDrugInfo.setLayout(layout);
 
 		Label lblDrugSearch = new Label(grpDrugInfo, SWT.NONE);
@@ -247,6 +256,36 @@ public class AddDrug extends GenericFormGui {
 		txtName.setLayoutData(new GridData(GridData.FILL, GridData.BEGINNING, true, false, 2,1));
 		txtName.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 		
+		// Status: in its own composite, or its radio buttons would share a
+		// group with Side Treatment and ARV Drug
+		Label lblStatus = new Label(grpDrugInfo, SWT.NONE);
+		lblStatus.setLayoutData(new GridData(GridData.BEGINNING, GridData.BEGINNING, false, false, 1,1));
+		lblStatus.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
+		lblStatus.setText("  Status:");
+
+		Composite compStatus = new Composite(grpDrugInfo, SWT.NONE);
+		compStatus.setLayoutData(new GridData(GridData.BEGINNING, GridData.BEGINNING, false, false, 2,1));
+		RowLayout statusLayout = new RowLayout(SWT.HORIZONTAL);
+		statusLayout.marginLeft = 0;
+		statusLayout.marginTop = 0;
+		statusLayout.marginBottom = 0;
+		statusLayout.spacing = 20;
+		compStatus.setLayout(statusLayout);
+
+		rdBtnActive = new Button(compStatus, SWT.RADIO);
+		rdBtnActive.setText("Active");
+		rdBtnActive.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
+		rdBtnActive.setSelection(true);
+		rdBtnActive
+		.setToolTipText("An active drug can be prescribed, added to drug groups and received as stock.");
+
+		rdBtnInactive = new Button(compStatus, SWT.RADIO);
+		rdBtnInactive.setText("Inactive");
+		rdBtnInactive.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
+		rdBtnInactive
+		.setToolTipText("An inactive drug can't be prescribed, added to drug groups or received as stock.\n"
+				+ "Its stock, prescriptions and history are kept.");
+
 		// lblNSN & txtNSN
 		Label lblatc = new Label(grpDrugInfo, SWT.NONE);
 		lblatc.setLayoutData(new GridData(GridData.BEGINNING, GridData.BEGINNING, false, false, 1,1));
@@ -401,7 +440,11 @@ public class AddDrug extends GenericFormGui {
 		rdBtnARV.setText("ARV Drug");
 		rdBtnARV.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 		rdBtnARV.setSelection(true);
-		
+
+		// as tall as its rows need, but leaving room for the Standard Dosage
+		// group above the buttons
+		int height = grpDrugInfo.computeSize(483, SWT.DEFAULT).y;
+		grpDrugInfo.setSize(483, Math.min(Math.max(height, 313), 330));
 		grpDrugInfo.layout();
 	}
 
@@ -458,7 +501,9 @@ public class AddDrug extends GenericFormGui {
 		grpStandadDosages.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 		grpStandadDosages.setText("Standard Dosage ");
 		grpStandadDosages.setLayout(null);
-		grpStandadDosages.setBounds(new Rectangle(16, 423, 485, 61));
+		Rectangle details = grpDrugInfo.getBounds();
+		grpStandadDosages.setBounds(new Rectangle(16, details.y + details.height
+				+ 12, 485, 61));
 
 		// lblTake
 		lblTake = new Label(grpStandadDosages, SWT.CENTER);
@@ -501,9 +546,16 @@ public class AddDrug extends GenericFormGui {
 			MessageBox mSave = new MessageBox(getShell(), SWT.ICON_QUESTION
 					| SWT.YES | SWT.NO);
 			mSave.setText(isAddnotUpdate ? "Add New Drug" : "Update Details");
-			mSave
-			.setMessage(isAddnotUpdate ? "Are you sure you want to add this drug to the database?"
-					: "Do you want to save the changes made to this drug?");
+			String message = isAddnotUpdate ? "Are you sure you want to add this drug to the database?"
+					: "Do you want to save the changes made to this drug?";
+			if (!isAddnotUpdate && loadedDrugActive
+					&& rdBtnInactive.getSelection()) {
+				message += "\n\nThe drug will be inactive: it can no longer be "
+					+ "prescribed, added to drug groups or received as stock. "
+					+ "Its stock, prescriptions and history are kept, and you "
+					+ "can make it active again here.";
+			}
+			mSave.setMessage(message);
 
 			switch (mSave.open()) {
 
@@ -574,6 +626,8 @@ public class AddDrug extends GenericFormGui {
 			txtMims.setText("");
 			txtTimesPerDay.setText("");
 			txtAmountPerTime.setText("");
+			rdBtnActive.setSelection(true);
+			rdBtnInactive.setSelection(false);
 
 			localDrug = null;
 			enableFields(isAddnotUpdate);
@@ -635,8 +689,9 @@ public class AddDrug extends GenericFormGui {
 
 	private void cmdSearchWidgetSelected() {
 
+		// inactive drugs too, so they can be made active again
 		Search drugSearch = new Search(getHSession(), getShell(),
-				CommonObjects.DRUG);
+				CommonObjects.DRUG, true);
 
 		if (drugSearch.getValueSelected() != null) {
 
@@ -696,6 +751,10 @@ public class AddDrug extends GenericFormGui {
 			rdBtnARV.setSelection(true);
 			rdBtnSideTreatment.setSelection(false);
 		}
+
+		loadedDrugActive = localDrug.isActive();
+		rdBtnActive.setSelection(loadedDrugActive);
+		rdBtnInactive.setSelection(!loadedDrugActive);
 
 		if (localDrug.getStockCode() != null) {
 			txtMims.setText(localDrug.getStockCode());
@@ -1019,6 +1078,8 @@ public class AddDrug extends GenericFormGui {
 				localDrug.setSideTreatment('F');
 			}
 
+			localDrug.setActive(rdBtnActive.getSelection());
+
 			if (!txtAtc.getText().trim().isEmpty()){
 				localDrug.setAtccode(AdministrationManager.getAtccodeFromName(getHSession(),
 					txtAtc.getText().trim()));
@@ -1065,6 +1126,9 @@ public class AddDrug extends GenericFormGui {
 		txtDispensingInstructions2.setEnabled(enable);
 		rdBtnSideTreatment.setEnabled(enable);
 		rdBtnARV.setEnabled(enable);
+		rdBtnActive.setEnabled(enable);
+		// a new drug starts active
+		rdBtnInactive.setEnabled(enable && !isAddnotUpdate);
 		txtAmountPerTime.setEnabled(enable);
 		txtTimesPerDay.setEnabled(enable);
 		txtAtc.setEnabled(enable);
@@ -1133,7 +1197,10 @@ public class AddDrug extends GenericFormGui {
 	private void createGrpChemicalCompounds() {
 		grpChemicalCompounds = new Group(getShell(), SWT.NONE);
 		grpChemicalCompounds.setText("Chemical Composition ");
-		grpChemicalCompounds.setBounds(new Rectangle(524, 110, 235, 372));
+		// level with the bottom of the Standard Dosage group beside it
+		Rectangle details = grpDrugInfo.getBounds();
+		int extra = details.height - 301;
+		grpChemicalCompounds.setBounds(new Rectangle(524, 110, 235, 372 + extra));
 		grpChemicalCompounds.setFont(ResourceUtils
 				.getFont(iDartFont.VERASANS_8));
 		
@@ -1141,7 +1208,7 @@ public class AddDrug extends GenericFormGui {
 				| SWT.FULL_SELECTION | SWT.BORDER);
 		tblChemicalCompounds.setHeaderVisible(true);
 		tblChemicalCompounds.setLinesVisible(true);
-		tblChemicalCompounds.setBounds(new Rectangle(12, 20, 213, 301));
+		tblChemicalCompounds.setBounds(new Rectangle(12, 20, 213, 301 + extra));
 		tblChemicalCompounds.setFont(ResourceUtils
 				.getFont(iDartFont.VERASANS_8));
 
@@ -1151,7 +1218,7 @@ public class AddDrug extends GenericFormGui {
 //		lblAddChemical.setImage(ResourceUtils.getImage(iDartImage.DRUG_30X26));
 		
 		btnAddChemical = new Button(grpChemicalCompounds, SWT.NONE);
-		btnAddChemical.setBounds(new Rectangle(14, 332, 100, 30));
+		btnAddChemical.setBounds(new Rectangle(14, 332 + extra, 100, 30));
 		btnAddChemical.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 		btnAddChemical.setText("Add Compound");
 		btnAddChemical
@@ -1164,7 +1231,7 @@ public class AddDrug extends GenericFormGui {
 		});
 		
 		btnEditChemical = new Button(grpChemicalCompounds, SWT.NONE);
-		btnEditChemical.setBounds(new Rectangle(120, 332, 100, 30));
+		btnEditChemical.setBounds(new Rectangle(120, 332 + extra, 100, 30));
 		btnEditChemical.setFont(ResourceUtils.getFont(iDartFont.VERASANS_8));
 		btnEditChemical.setText("Edit Compound");
 		btnEditChemical

@@ -157,7 +157,7 @@ public class StockReceiptsAndIssuesPerBatch extends GenericReportGui {
 			public void widgetSelected(
 					org.eclipse.swt.events.SelectionEvent e) {
 				Search drugSearch = new Search(getHSession(),
-						getShell(), CommonObjects.DRUG);
+						getShell(), CommonObjects.DRUG, true);
 				if (drugSearch.getValueSelected() != null) {
 					txtDrugName
 					.setText(drugSearch.getValueSelected()[0]);

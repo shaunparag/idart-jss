@@ -471,7 +471,7 @@ public class DeleteStockPrescriptionsPackages extends GenericOthersGui {
 	private void cmdDrugSearchWidgetSelected() {
 
 		Search drugSearch = new Search(getHSession(), getShell(),
-				CommonObjects.DRUG);
+				CommonObjects.DRUG, true);
 
 		if (drugSearch.getValueSelected() != null) {
 

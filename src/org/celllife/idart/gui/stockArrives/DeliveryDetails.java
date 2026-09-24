@@ -116,8 +116,9 @@ public class DeliveryDetails extends GenericFormGui {
 		this.tableItem = ti;
 		this.parentStockScreen = parentStockScreen;
 
+		// no new stock for inactive drugs
 		Search drugSearch = new Search(getHSession(), getShell(),
-				CommonObjects.DRUG);
+				CommonObjects.DRUG, false);
 
 		if (drugSearch.getValueSelected() != null) {
 			btnDrugSearch.setEnabled(false);
@@ -698,8 +699,9 @@ public class DeliveryDetails extends GenericFormGui {
 	 */
 	private void cmdSearchWidgetSelected() {
 
+		// no new stock for inactive drugs
 		Search drugSearch = new Search(getHSession(), getShell(),
-				CommonObjects.DRUG);
+				CommonObjects.DRUG, false);
 
 		if (drugSearch.getValueSelected() != null) {
 

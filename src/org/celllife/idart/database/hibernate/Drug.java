@@ -69,6 +69,10 @@ public class Drug implements Comparable<Drug> {
 
 	private String stockCode;
 
+	// an inactive drug can't be added to prescriptions, drug groups or new
+	// stock, but keeps its history
+	private boolean active = true;
+
 	@OneToMany(mappedBy = "drug")
 	@Cascade( { org.hibernate.annotations.CascadeType.ALL,
 		org.hibernate.annotations.CascadeType.DELETE_ORPHAN })
@@ -354,6 +358,14 @@ public class Drug implements Comparable<Drug> {
 
 	public boolean isARV() {
 		return sideTreatment == 'F';
+	}
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
 	}
 
 	/* (non-Javadoc)

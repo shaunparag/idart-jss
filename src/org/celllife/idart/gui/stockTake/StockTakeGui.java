@@ -948,8 +948,9 @@ public class StockTakeGui extends GenericOthersGui {
 				return;
 		}
 
+		// inactive drugs too: their stock still has to be counted
 		Search drugSearch = new Search(getHSession(), getShell(),
-				CommonObjects.DRUG, includeZeroBatches);
+				CommonObjects.DRUG, true);
 
 		if (drugSearch.getValueSelected() != null) {
 

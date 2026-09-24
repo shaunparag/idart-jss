@@ -1119,6 +1119,25 @@ iDARTChangeListener {
 			intDrugTableSize += 1;
 
 		}
+
+		// the patient may still need them, so point them out rather than
+		// leaving them off the new prescription
+		List<String> inactiveDrugs = new ArrayList<String>();
+		for (PrescribedDrugs pd : drugs) {
+			if (!pd.getDrug().isActive()) {
+				inactiveDrugs.add(pd.getDrug().getName());
+			}
+		}
+		if (!inactiveDrugs.isEmpty()) {
+			MessageBox mInactive = new MessageBox(getShell(),
+					SWT.ICON_INFORMATION | SWT.OK);
+			mInactive.setText("Inactive Drugs on the Prescription");
+			mInactive.setMessage("These drugs on the patient's current prescription "
+					+ "are now inactive:\n\n" + String.join("\n", inactiveDrugs)
+					+ "\n\nThey are still listed for the new prescription. "
+					+ "Remove any the patient should no longer get.");
+			mInactive.open();
+		}
 	}
 
 	/**
@@ -1828,11 +1847,17 @@ iDARTChangeListener {
 
 			Regimen reg = DrugManager.getRegimen(getHSession(), DrugGroupName);
 			Iterator<RegimenDrugs> it = reg.getRegimenDrugs().iterator();
+			List<String> inactiveDrugs = new ArrayList<String>();
 
 			while (it.hasNext()) {
 				RegimenDrugs rd = it.next();
 
 				Drug d = rd.getDrug();
+
+				if (!d.isActive()) {
+					inactiveDrugs.add(d.getName());
+					continue;
+				}
 
 				TableItem ti = new TableItem(tblDrugs, SWT.NONE);
 				ti.setText(0, (Integer.toString(tblDrugs.getItemCount())));
@@ -1876,6 +1901,16 @@ iDARTChangeListener {
 				ti.setData(pd);
 
 				intDrugTableSize = tblDrugs.getItemCount();
+			}
+
+			if (!inactiveDrugs.isEmpty()) {
+				MessageBox mInactive = new MessageBox(getShell(),
+						SWT.ICON_INFORMATION | SWT.OK);
+				mInactive.setText("Inactive Drugs Left Out");
+				mInactive.setMessage("These drugs in the drug group are inactive, so they "
+						+ "were not added to the prescription:\n\n"
+						+ String.join("\n", inactiveDrugs));
+				mInactive.open();
 			}
 		}
 	}

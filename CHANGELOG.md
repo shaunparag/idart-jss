@@ -55,6 +55,22 @@ data from older versions of iDART opens directly. See "Upgrading" below and
 - Opening the history of a patient with old packages whose stock batch has
   since been deleted no longer crashes.
 
+### Drugs
+
+- A drug that is no longer used can be made inactive, instead of deleted,
+  in **Update an existing Drug's details** (Status: Active / Inactive).
+  An inactive drug:
+  - can't be added to prescriptions or drug groups, or received as stock;
+  - is left out when a drug group is added to a prescription, and iDART
+    says so;
+  - is pointed out when a patient's prescription that includes it is
+    renewed, so the pharmacist decides whether to keep it;
+  - keeps its stock, prescriptions, packages and reports, and its stock
+    can still be destroyed or counted in a stock take.
+
+  The drug search shows "Inactive" instead of the pack size for such
+  drugs, and typing "inactive" lists them. Existing drugs start active.
+
 ### Patients
 
 - Update Patient no longer blanks the patient's details when the

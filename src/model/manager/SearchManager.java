@@ -459,11 +459,14 @@ public class SearchManager {
 	 *            boolean
 	 * @param includeZeroDrugs
 	 *            boolean
+	 * @param includeInactive
+	 *            whether to list drugs marked inactive
 	 * @return List<Drug>
 	 * @throws HibernateException
 	 */
 	public static List<Drug> loadDrugs(Session sess, Search search,
-			boolean includeSideTreatmentDrugs, boolean includeZeroDrugs)
+			boolean includeSideTreatmentDrugs, boolean includeZeroDrugs,
+			boolean includeInactive)
 			throws HibernateException {
 
 		listTableEntries = new ArrayList<SearchEntry>();
@@ -489,9 +492,17 @@ public class SearchManager {
 		search.getShell().setText("Select a Drug...");
 
 		if (includeZeroDrugs) {
-			drugs = DrugManager.getAllDrugs(sess);
+			drugs = includeInactive ? DrugManager.getAllDrugs(sess)
+					: DrugManager.getActiveDrugs(sess);
 		} else {
 			drugs = DrugManager.getDrugsListForStockTake(sess, false);
+			if (!includeInactive) {
+				for (Iterator<Drug> it = drugs.iterator(); it.hasNext();) {
+					if (!it.next().isActive()) {
+						it.remove();
+					}
+				}
+			}
 		}
 
 		Collections.sort(drugs);
@@ -505,7 +516,7 @@ public class SearchManager {
 			t[i] = new TableItem(search.getTblSearch(), SWT.NONE);
 			itemText = new String[2];
 			itemText[0] = drugList.getName();
-			itemText[1] = (Integer.valueOf(drugList.getPackSize())).toString();
+			itemText[1] = drugColumnTwo(drugList);
 			t[i].setText(itemText);
 			listTableEntries.add(new SearchEntry(itemText[0], itemText[1]));
 			i++;
@@ -514,6 +525,15 @@ public class SearchManager {
 		redrawTable();
 		return drugs;
 
+	}
+
+	/**
+	 * The second column of the drug search: the pack size, or "Inactive" for
+	 * a drug marked inactive, so it stands out where inactive drugs are listed
+	 * and typing "inactive" finds them all.
+	 */
+	private static String drugColumnTwo(Drug drug) {
+		return drug.isActive() ? String.valueOf(drug.getPackSize()) : "Inactive";
 	}
 	
 	/**
@@ -758,14 +778,13 @@ public class SearchManager {
 				Drug drug = (Drug) fullList.get(i);
 				found1 = drug.getName().toUpperCase().indexOf(
 						searchString.toUpperCase());
-				found2 = (Integer.valueOf(drug.getPackSize())).toString()
-				.toUpperCase().indexOf(searchString.toUpperCase());
+				found2 = drugColumnTwo(drug).toUpperCase().indexOf(
+						searchString.toUpperCase());
 				if (found1 != -1 || found2 != -1) {
 					TableItem tableItem = new TableItem(t, SWT.NONE);
 					String[] newStrings = new String[2];
 					newStrings[0] = drug.getName();
-					newStrings[1] = (new Integer(drug.getPackSize()))
-					.toString();
+					newStrings[1] = drugColumnTwo(drug);
 					tableItem.setText(newStrings);
 				}
 				break;
