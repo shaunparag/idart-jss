@@ -3,6 +3,7 @@ package org.celllife.idart.test;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.apache.commons.io.FileUtils;
 import org.celllife.idart.database.ConnectException;
@@ -25,6 +26,9 @@ import org.testng.annotations.BeforeSuite;
 public abstract class HibernateTest extends IDARTtest {
 
 	protected static final String informationSchema = "metadata/database/information.pgkeys.sql";
+
+	// above every id in the test data sets
+	private static final int FIRST_NEW_ID = 1000;
 	private static Session sess;
 	private static Transaction tx;
 	private IDatabaseConnection conn;
@@ -76,6 +80,15 @@ public abstract class HibernateTest extends IDARTtest {
 
 		try {
 			insertTestData();
+			// the test data brings its own ids: start the ids Hibernate
+			// gives new rows above them, or inserts can collide with it
+			Statement statement = conn.getConnection().createStatement();
+			try {
+				statement.execute("select setval('hibernate_sequence', greatest(last_value, "
+						+ FIRST_NEW_ID + ")) from hibernate_sequence");
+			} finally {
+				statement.close();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			assert false : "Database setup failed.";
