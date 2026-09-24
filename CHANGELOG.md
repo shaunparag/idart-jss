@@ -3,9 +3,10 @@
 ## 3.9.0 (September 2026)
 
 This release moves iDART onto Windows 11 and fixes the problems found while
-testing it with real pharmacy data. The database structure is unchanged, so
-data from older versions of iDART opens directly. See "Upgrading" below and
-[WINDOWS11_INSTALL.md](WINDOWS11_INSTALL.md).
+testing it with real pharmacy data. Data from older versions of iDART opens
+directly: the only database change, a column that lets drugs be made
+inactive, is added by iDART itself the first time it opens the database. See
+"Upgrading" below and [WINDOWS11_INSTALL.md](WINDOWS11_INSTALL.md).
 
 ### Windows 11
 
