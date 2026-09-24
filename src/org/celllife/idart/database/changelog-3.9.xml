@@ -16,4 +16,44 @@
 			</column>
 		</addColumn>
 	</changeSet>
+	<!-- Only a speed-up, so it must never stop iDART starting: skipped (and
+	     tried again at the next start) when the database user may not create
+	     the indexes, and any other failure is logged and passed over. -->
+	<changeSet author="idart-jss" id="3.9.2" failOnError="false">
+		<preConditions onFail="CONTINUE">
+			<sqlCheck expectedResult="13">
+				select count(*) from pg_class c
+				where c.relnamespace = 'public'::regnamespace
+				and c.relkind = 'r'
+				and c.relname in ('prescription', 'prescribeddrugs', 'package',
+					'packageddrugs', 'packagedruginfotmp', 'appointment', 'pillcount',
+					'accumulateddrugs', 'episode', 'patientidentifier',
+					'patientattribute', 'patientvisit', 'stock')
+				and pg_has_role(c.relowner, 'USAGE')
+				and has_schema_privilege('public', 'CREATE')
+			</sqlCheck>
+		</preConditions>
+		<comment>indexes on the columns that link the large tables, so reports and screens don't read whole tables</comment>
+		<sql>
+			create index if not exists idx_prescription_patient on prescription (patient);
+			create index if not exists idx_prescribeddrugs_prescription on prescribeddrugs (prescription);
+			create index if not exists idx_package_prescription on package (prescription);
+			create index if not exists idx_package_packageid on package (packageid);
+			create index if not exists idx_package_packdate on package (packdate);
+			create index if not exists idx_package_pickupdate on package (pickupdate);
+			create index if not exists idx_packageddrugs_parentpackage on packageddrugs (parentpackage);
+			create index if not exists idx_packageddrugs_stock on packageddrugs (stock);
+			create index if not exists idx_packagedruginfotmp_packageddrug on packagedruginfotmp (packageddrug);
+			create index if not exists idx_appointment_patient on appointment (patient);
+			create index if not exists idx_pillcount_previouspackage on pillcount (previouspackage);
+			create index if not exists idx_accumulateddrugs_withpackage on accumulateddrugs (withpackage);
+			create index if not exists idx_accumulateddrugs_pillcount on accumulateddrugs (pillcount);
+			create index if not exists idx_episode_patient on episode (patient);
+			create index if not exists idx_patientidentifier_patient on patientidentifier (patient_id);
+			create index if not exists idx_patientattribute_patient on patientattribute (patient);
+			create index if not exists idx_patientvisit_patient on patientvisit (patient_id);
+			create index if not exists idx_stock_drug on stock (drug);
+			analyze;
+		</sql>
+	</changeSet>
 </databaseChangeLog>

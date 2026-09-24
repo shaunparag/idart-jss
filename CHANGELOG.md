@@ -2,10 +2,11 @@
 
 ## 3.9.0 (September 2026)
 
-This release moves iDART onto Windows 11 and fixes the problems found while
-testing it with real pharmacy data. Data from older versions of iDART opens
-directly: the only database change, a column that lets drugs be made
-inactive, is added by iDART itself the first time it opens the database. See
+This release moves iDART onto Windows 11, fixes the problems found while
+testing it with real pharmacy data, and makes reports much faster on large
+databases. Data from older versions of iDART opens directly: the database
+changes, a column that lets drugs be made inactive and indexes that speed up
+reports, are made by iDART itself the first time it opens the database. See
 "Upgrading" below and [WINDOWS11_INSTALL.md](WINDOWS11_INSTALL.md).
 
 ### Windows 11
@@ -107,6 +108,39 @@ inactive, is added by iDART itself the first time it opens the database. See
 - Run Data Quality Checks with nothing selected shows a message instead of
   crashing.
 
+### Speed
+
+Reports on a large database took from several seconds to over a minute.
+Timed on a test database the size of a site with 16 years of data
+(3,200 patients, 155,000 packages), for one month:
+
+| Report | Before | Now |
+|---|---|---|
+| Patient History (patient with 111 packages) | 75 s | 1 s |
+| Drugs Dispensed (Excel) | 64 s | 3 s |
+| Drug Combinations | 56 s | 3 s |
+| Package Tracking | 14 s | 0.4 s |
+| Clinic Indicators | 10 s | 1 s |
+| PEPFAR | 9 s | 1.3 s |
+| ARV Drug Usage | 8 s | 0.7 s |
+| Monthly Receipts and Issues | 5 s | 2.8 s |
+
+- iDART adds indexes to the columns that link the large tables (a patient's
+  prescriptions, a prescription's packages, a package's drugs and so on)
+  the first time it opens a database. This takes a few seconds, once. It
+  is skipped, and tried again at the next start, if the database user may
+  not create indexes.
+- Patient History, Package Tracking and the collection sheets look up each
+  package's latest pill count directly instead of working it out for every
+  package in the database.
+- Records are no longer loaded in batches: the database library iDART uses
+  searched everything it had already loaded for each batch, which made the
+  largest reports several times slower.
+- iDART may use up to 2 GB of memory instead of 512 MB. A Drugs Dispensed
+  export for two years ran out of memory before.
+- Stock on Hand, opening a patient to dispense and saving a package are
+  faster too.
+
 ### Patient import
 
 - The template comes from **General Admin → Generate import template**, so
@@ -139,5 +173,6 @@ inactive, is added by iDART itself the first time it opens the database. See
 - Install 3.9.0 on every PC that uses the same database or restores its
   backups. The login screen shows the version.
 - No manual database changes are needed. iDART updates the database
-  structure itself the first time it opens it.
+  structure itself the first time it opens it; the first start takes a few
+  seconds longer while it adds the indexes.
 - Needs 64-bit Java 8 (Temurin) and PostgreSQL 14 or later.

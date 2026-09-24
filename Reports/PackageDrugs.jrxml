@@ -45,16 +45,12 @@ left outer join
 from pillCount, AccumulatedDrugs
 where AccumulatedDrugs.pillcount = pillCount.id) as ad
 on ((ad.withPackage = packdrugquery.packId)and(ad.drug = packdrugquery.drugId))
-left outer join
-(select accum, dateOfCount, drug, previousPackage
-from pillCount
-where pillCount.id in
-(select max(id) 
-from pillCount as pillc 
-where pillc.previousPackage= previousPackage 
-and pillc.drug = drug
-group by pillc.previousPackage, pillc.drug)) as pc
-on ((pc.previousPackage = packdrugquery.packId)and(pc.drug = packdrugquery.drugId))
+-- the latest pill count for this package and drug
+left outer join pillCount as pc
+on pc.id = (select max(pillc.id)
+from pillCount as pillc
+where pillc.previousPackage = packdrugquery.packId
+and pillc.drug = packdrugquery.drugId)
 order by name asc]]>
 	</queryString>
 	<field name="name" class="java.lang.String"/>

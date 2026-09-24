@@ -35,4 +35,4 @@ else
 	JAVA_CMD="java"
 fi
 
-exec  "$JAVA_CMD"  -cp $PHARM_CLASSPATH:bin/Pharmacy.jar -Djava.library.path=$PWD -Xms24m -Xmx512m $*
+exec  "$JAVA_CMD"  -cp $PHARM_CLASSPATH:bin/Pharmacy.jar -Djava.library.path=$PWD -Xms24m -Xmx2048m $*

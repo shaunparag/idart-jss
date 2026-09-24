@@ -23,7 +23,7 @@ if defined JAVA_HOME (
 	set "JAVA_CMD=javaw.exe"
 )
 
-start  "iDART" "%JAVA_CMD%" -cp "%PHARM_CLASSPATH%" -Djava.library.path=%ROOT:~0,-2%" -Xms24m -Xmx512m org.celllife.idart.start.FixStockLevels %*
+start  "iDART" "%JAVA_CMD%" -cp "%PHARM_CLASSPATH%" -Djava.library.path=%ROOT:~0,-2%" -Xms24m -Xmx2048m org.celllife.idart.start.FixStockLevels %*
 
 
 

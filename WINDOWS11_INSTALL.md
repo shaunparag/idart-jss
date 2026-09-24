@@ -632,6 +632,20 @@ a patient's sheet and `idart.log` says "the report has no pages", the
 patient's latest prescription has no package yet: a collection sheet is
 for the latest package on the latest prescription.
 
+**Reports are still slow after installing 3.9.0**
+3.9.0 adds indexes to the database the first time it opens it. It skips
+this, and tries again at every start, if the database user iDART connects
+with may not create them: that user has to own the tables and be allowed
+to create objects in the `public` schema. The installer's default user,
+`postgres`, always can. To check, run this in pgAdmin on iDART's database;
+it should say 18:
+```sql
+select count(*) from pg_indexes where indexname like 'idx_%';
+```
+If it says 0, connect as `postgres`, run
+`GRANT CREATE ON SCHEMA public TO <iDART's database user>;` and restart
+iDART.
+
 **Installer or app won't start / GUI looks broken**
 This build targets a modern 64-bit Java 8 runtime specifically — confirm
 you installed Temurin 8 (not a 32-bit build, not a different major

@@ -104,7 +104,10 @@ public class HibernateUtil {
 		ac.setProperty("hibernate.transaction.factory_class",
 		"org.hibernate.transaction.JDBCTransactionFactory");
 		ac.setProperty("hibernate.max_fetch_depth", "1");
-		ac.setProperty("hibernate.default_batch_fetch_size", "4");
+		// no batch fetching: this Hibernate version rescans everything already
+		// loaded for each batch, which made the large reports several times
+		// slower
+		ac.setProperty("hibernate.default_batch_fetch_size", "1");
 		ac.setProperty("hibernate.use_sql_comments", "false");
 		ac.setProperty("connection.autocommit", "true");
 		ac.setProperty("hibernate.connection.url", hibernateConnectionUrl);

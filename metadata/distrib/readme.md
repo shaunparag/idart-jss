@@ -47,6 +47,8 @@ ChangeLog
 * Drop-down boxes show their arrow on Windows 11.
 * Drugs that are no longer used can be made inactive instead of deleted,
   so their history is kept.
+* Reports are much faster on large databases: iDART adds indexes to the
+  database the first time it opens it.
 
 The full list is in CHANGELOG.md in the iDART source repository.
 
@@ -56,6 +58,7 @@ Upgrade Notes
 * Install 3.9.0 on every PC that uses the same database or restores its
   backups.
 * No manual database changes are needed: iDART updates the database
-  structure itself the first time it opens it.
+  structure itself the first time it opens it. The first start takes a few
+  seconds longer while it adds the indexes.
 
 .. This file uses reStructuredText markup (http://docutils.sourceforge.net/rst.html).

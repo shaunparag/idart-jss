@@ -31,4 +31,4 @@ if defined JAVA_HOME (
 )
 
 :: %ROOT~0,-2% = extract all but the last 2 characters from the ROOT variable (in this case '\"')
-start  "iDART" "%JAVA_CMD%" -cp "%PHARM_CLASSPATH%" -Djava.library.path=%ROOT:~0,-2%" -Xms24m -Xmx512m %*
+start  "iDART" "%JAVA_CMD%" -cp "%PHARM_CLASSPATH%" -Djava.library.path=%ROOT:~0,-2%" -Xms24m -Xmx2048m %*
