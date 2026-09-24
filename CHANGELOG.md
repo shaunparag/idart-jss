@@ -94,6 +94,10 @@ inactive, is added by iDART itself the first time it opens the database. See
   "null", and iDART names any patient it couldn't make a sheet for.
 - Monthly Receipts and Issues no longer fails with "column d.nsncode does
   not exist".
+- The Patient Visits report (Patient Visits and Stats Module) leaves out
+  visits that belong to no patient. The database records one each time
+  stock is destroyed, and older versions of iDART left some with a date,
+  which made the report fail and restart iDART.
 - The Cohorts report runs (its query had a syntax error).
 - The report viewer opens maximised, and neither viewing a report with data
   nor closing the viewer crashes any more.

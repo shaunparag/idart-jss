@@ -89,13 +89,17 @@ public class PAVASManager {
 		return result;
 	}
 
+	// The Patient Visits report's queries (this one and the totals below)
+	// leave out visits with no patient. The database records one each time
+	// stock is destroyed, and older versions of iDART left some with a date,
+	// which can't be loaded: patient_id is an int.
 	public static List<PatientVisit> getVisitsforAllPatients(Session session,
 			Date startdate, Date enddate) throws HibernateException {
 
 		@SuppressWarnings("unchecked")
 		List<PatientVisit> result = session
 		.createQuery(
-				"from PatientVisit as pv where pv.dateofvisit>:sd and pv.dateofvisit<:ed order by pv.dateofvisit")
+				"from PatientVisit as pv where pv.patient_id is not null and pv.dateofvisit>:sd and pv.dateofvisit<:ed order by pv.dateofvisit")
 				.setDate("sd", startdate).setDate("ed", enddate).list();
 		return result;
 	}
@@ -155,7 +159,7 @@ public class PAVASManager {
 		@SuppressWarnings("unchecked")
 		List<Long> patients = session
 		.createQuery(
-				"select count(pv.patient_id) from PatientVisit as pv where pv.dateofvisit>:sd and pv.dateofvisit<:ed group by pv.patient_id")
+				"select count(pv.patient_id) from PatientVisit as pv where pv.patient_id is not null and pv.dateofvisit>:sd and pv.dateofvisit<:ed group by pv.patient_id")
 				.setDate("sd", startdate).setDate("ed", enddate).list();
 		long result = patients.size();
 		return result;
@@ -165,7 +169,7 @@ public class PAVASManager {
 			Date enddate) throws HibernateException {
 		long result = (Long) session
 		.createQuery(
-				"select count(pv.id) from PatientVisit as pv where pv.dateofvisit>:sd and pv.dateofvisit<:ed")
+				"select count(pv.id) from PatientVisit as pv where pv.patient_id is not null and pv.dateofvisit>:sd and pv.dateofvisit<:ed")
 				.setDate("sd", startdate).setDate("ed", enddate).uniqueResult();
 		return result;
 	}
@@ -184,7 +188,7 @@ public class PAVASManager {
 		@SuppressWarnings("unchecked")
 		List<Long> patients = session
 		.createQuery(
-				"select count(pv.patient_id) from PatientVisit as pv where pv.dateofvisit>:sd and pv.dateofvisit<:ed and pv.patientvisitreason_id=:vr group by pv.patient_id")
+				"select count(pv.patient_id) from PatientVisit as pv where pv.patient_id is not null and pv.dateofvisit>:sd and pv.dateofvisit<:ed and pv.patientvisitreason_id=:vr group by pv.patient_id")
 				.setInteger("vr", visitreason).setDate("sd", startdate)
 				.setDate("ed", enddate).list();
 		long result = patients.size();
@@ -196,7 +200,7 @@ public class PAVASManager {
 	throws HibernateException {
 		long result = (Long) session
 		.createQuery(
-				"select count(pv.id) from PatientVisit as pv where pv.dateofvisit>:sd and pv.dateofvisit<:ed and pv.patientvisitreason_id=:vr")
+				"select count(pv.id) from PatientVisit as pv where pv.patient_id is not null and pv.dateofvisit>:sd and pv.dateofvisit<:ed and pv.patientvisitreason_id=:vr")
 				.setInteger("vr", visitreason).setDate("sd", startdate)
 				.setDate("ed", enddate).uniqueResult();
 		return result;

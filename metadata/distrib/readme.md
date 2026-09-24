@@ -43,7 +43,7 @@ ChangeLog
   Patients.
 * Fixes to Update Patient, cellphone numbers, facility details, patient
   import dates and several reports (Monthly Receipts and Issues, Cohorts,
-  patient collection sheets, the report viewer).
+  Patient Visits, patient collection sheets, the report viewer).
 * Drop-down boxes show their arrow on Windows 11.
 * Drugs that are no longer used can be made inactive instead of deleted,
   so their history is kept.
