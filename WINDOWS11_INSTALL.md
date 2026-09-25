@@ -132,8 +132,8 @@ avoided; see the notes in `build.xml`). Do not install a newer JRE (11, 17,
    - **iDART Database Username**: `postgres`.
    - **iDART Database Password**: the `postgres` password you set in
      section 1.2, step 2.
-   - **Connecting to Ekapa?**: **No** (Ekapa is a South African health
-     system integration, not relevant here).
+   - **Connecting to Ekapa?**: **No** (eKapa is a data-submission link
+     this pharmacy doesn't use).
    - The remaining panels are dispensing/label/workflow preferences
      (direct-dispensing vs. pre-packaging, label size, auto-logout time,
      etc.) — the defaults are reasonable to start with; all of them can be
@@ -344,23 +344,22 @@ dispensing paused on the old system for the few minutes between taking
 the dump and bringing the new install online — anything entered in that
 gap won't be in the dump.
 
-### 4.6 A note on this specific deployment's existing data
+### 4.6 A note on clinics
 
-Worth knowing before assuming something's broken post-migration: this
-deployment's data has exactly **one** clinic record, and both it and the
-`nationalclinics` reference table are leftover South African seed data
-from the original Cell-Life product (South African district/metro
-municipality names; a South African trade union as the clinic name) —
-not something the migration dropped, and not specific to any one
-migration attempt. Adding real clinics is a normal **General Admin → Add
-Clinic** task (only the clinic name is actually required — the
-province/district/facility fields can be left blank). Making an added
-clinic *selectable at login* additionally needs `downReferralMode` in
-`idart.properties` set to `online` — which also enables a real
-down-referral/distribution workflow (a main pharmacy scanning packages
-out to satellite clinics) across the Stock Control and
-Package-to-Patient screens, so confirm that operating model actually
-fits before switching it just to unlock the login dropdown.
+This pharmacy's data has one clinic record, the main clinic. That is
+expected, not something the migration dropped. The `nationalclinics`
+table is different: it is the national list of South African ARV sites
+that iDART ships with, kept as reference data, not the pharmacy's own
+records.
+
+Adding more clinics is a normal **General Admin → Add Clinic** task (only
+the clinic name is required; the province, district and facility fields
+can be left blank). Making an added clinic *selectable at login* also
+needs `downReferralMode` in `idart.properties` set to `online`. That also
+turns on the down-referral workflow (a main pharmacy scanning packages out
+to satellite clinics) in the Stock Control and Package-to-Patient screens,
+so confirm that way of working fits before switching it just to unlock
+the login list.
 
 ## 5. Backing up and restoring
 
