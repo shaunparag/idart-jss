@@ -177,18 +177,26 @@ public final class ReportPrinting {
 		display.timerExec(100, new Runnable() {
 			@Override
 			public void run() {
-				if (viewer.isDisposed() || !printThread.isAlive()
-						|| System.currentTimeMillis() - start > 20000) {
+				if (viewer.isDisposed() || !printThread.isAlive()) {
+					return;
+				}
+				if (System.currentTimeMillis() - start > 20000) {
+					log.info("Windows print dialog not found to bring forward");
 					return;
 				}
 				try {
-					long dialog = findPrintDialog(viewer.handle);
+					long dialog = findPrintDialog(display, viewer.handle);
 					if (dialog != 0) {
+						// On top of the other windows, which needs no permission
+						// to take the front, then the front itself
+						os("SetWindowPos", SET_WINDOW_POS, dialog, HWND_TOPMOST, 0, 0, 0, 0,
+								SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
+						os("SetWindowPos", SET_WINDOW_POS, dialog, HWND_NOTOPMOST, 0, 0, 0, 0,
+								SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE);
 						boolean front = (Boolean) os("SetForegroundWindow", LONG, dialog);
-						os("BringWindowToTop", LONG, dialog);
-						log.info("Windows print dialog opened after "
-								+ (System.currentTimeMillis() - start) + " ms"
-								+ (front ? ", brought to the front" : ", could not bring it to the front"));
+						log.info("Windows print dialog \"" + title(dialog) + "\" opened after "
+								+ (System.currentTimeMillis() - start) + " ms, brought forward"
+								+ (front ? " and given the front" : "; could not give it the front"));
 						return;
 					}
 				} catch (Exception e) {
@@ -200,35 +208,64 @@ public final class ReportPrinting {
 		});
 	}
 
+	private static final Class<?>[] NONE = {};
+
 	private static final Class<?>[] LONG = { long.class };
+
+	private static final Class<?>[] GET_WINDOW = { long.class, int.class };
+
+	private static final Class<?>[] WINDOW_TEXT = { long.class, char[].class, int.class };
+
+	private static final Class<?>[] SET_WINDOW_POS = { long.class, long.class, int.class,
+			int.class, int.class, int.class, int.class };
 
 	private static final int GW_HWNDFIRST = 0;
 
 	private static final int GW_HWNDNEXT = 2;
 
+	private static final long HWND_TOPMOST = -1;
+
+	private static final long HWND_NOTOPMOST = -2;
+
+	private static final int SWP_NOSIZE = 0x1;
+
+	private static final int SWP_NOMOVE = 0x2;
+
+	private static final int SWP_NOACTIVATE = 0x10;
+
 	/**
-	 * The visible standard dialog ("#32770", the Windows print dialog) that
-	 * belongs to iDART, or 0.
+	 * The Windows print dialog: a visible standard dialog window ("#32770")
+	 * of iDART's that is not one of iDART's own screens, which SWT also makes
+	 * standard dialog windows when they have a parent. iDART's screens belong
+	 * to the screen thread, which this runs on; Java opens the print dialog
+	 * on a thread of its own. Returns 0 if it is not open.
 	 */
-	private static long findPrintDialog(long viewer) throws Exception {
-		int process = (Integer) os("GetCurrentProcessId", new Class<?>[0]);
-		Class<?>[] getWindow = { long.class, int.class };
-		long window = (Long) os("GetWindow", getWindow, viewer, GW_HWNDFIRST);
+	private static long findPrintDialog(Display display, long viewer) throws Exception {
+		int process = (Integer) os("GetCurrentProcessId", NONE);
+		int screenThread = (Integer) os("GetCurrentThreadId", NONE);
+		long window = (Long) os("GetWindow", GET_WINDOW, viewer, GW_HWNDFIRST);
 		while (window != 0) {
 			int[] owner = new int[1];
-			os("GetWindowThreadProcessId", new Class<?>[] { long.class, int[].class }, window, owner);
-			if (owner[0] == process && (Boolean) os("IsWindowVisible", LONG, window)) {
+			int thread = (Integer) os("GetWindowThreadProcessId",
+					new Class<?>[] { long.class, int[].class }, window, owner);
+			if (owner[0] == process && thread != screenThread
+					&& display.findWidget(window) == null
+					&& (Boolean) os("IsWindowVisible", LONG, window)) {
 				char[] name = new char[16];
-				int length = (Integer) os("GetClassName",
-						new Class<?>[] { long.class, char[].class, int.class }, window, name,
-						name.length);
+				int length = (Integer) os("GetClassName", WINDOW_TEXT, window, name, name.length);
 				if ("#32770".equals(new String(name, 0, length))) {
 					return window;
 				}
 			}
-			window = (Long) os("GetWindow", getWindow, window, GW_HWNDNEXT);
+			window = (Long) os("GetWindow", GET_WINDOW, window, GW_HWNDNEXT);
 		}
 		return 0;
+	}
+
+	private static String title(long window) throws Exception {
+		char[] text = new char[256];
+		int length = (Integer) os("GetWindowText", WINDOW_TEXT, window, text, text.length);
+		return new String(text, 0, Math.max(length, 0));
 	}
 
 	/**
