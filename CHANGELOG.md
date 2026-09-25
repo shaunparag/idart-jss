@@ -103,8 +103,7 @@ reports, are made by iDART itself the first time it opens the database. See
 - The Cohorts report runs (its query had a syntax error). Its Excel Report
   button, which did nothing, is gone: View Report saves the report as a CSV
   file, which opens in Excel.
-- The report viewer opens maximised, and neither viewing a report with data
-  nor closing the viewer crashes any more.
+- The report viewer opens maximised.
 - View Report and Close are no longer cut off on date-range reports.
 - Run Data Quality Checks with nothing selected shows a message instead of
   crashing.
