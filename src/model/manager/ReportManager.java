@@ -43,6 +43,7 @@ import org.celllife.idart.commonobjects.LocalObjects;
 import org.celllife.idart.database.hibernate.StockCenter;
 import org.celllife.idart.database.hibernate.util.JDBCUtil;
 import org.celllife.idart.gui.utils.LayoutUtils;
+import org.celllife.idart.gui.utils.ReportPrinting;
 import org.celllife.idart.gui.utils.ResourceUtils;
 import org.celllife.idart.gui.utils.iDartFont;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
@@ -270,6 +271,7 @@ public class ReportManager {
 		if (jp_0 != null) {
 			if (jp_0.getPages().size() > 0) {
 				ViewerApp viewer = new ViewerApp();
+				ReportPrinting.install(viewer);
 				viewer.getReportViewer().setDocument(jp_0);
 				// Maximize before open() rather than after: getShell() was
 				// observed returning null immediately after open() on some
@@ -332,6 +334,7 @@ public class ReportManager {
 				if (jp != null) {
 					if (jp.getPages().size() > 0) {
 						ViewerApp viewer = new ViewerApp();
+						ReportPrinting.install(viewer);
 						viewer.getReportViewer().setDocument(jp);
 						viewer.create();
 						Shell viewerShell = viewer.getShell();

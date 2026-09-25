@@ -22,6 +22,7 @@ import net.sf.jasperreports.engine.JasperPrint;
 import org.apache.log4j.Logger;
 import org.celllife.idart.database.hibernate.util.HibernateUtil;
 import org.celllife.idart.database.hibernate.util.JDBCUtil;
+import org.celllife.idart.gui.utils.ReportPrinting;
 import org.celllife.idart.misc.iDARTUtil;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.SWT;
@@ -181,6 +182,7 @@ public abstract class AbstractJasperReport implements iDARTReport {
 				if (jp != null) {
 					if (jp.getPages().size() > 0) {
 						ViewerApp viewer = new ViewerApp();
+						ReportPrinting.install(viewer);
 						viewer.getReportViewer().setDocument(jp);
 						// Maximize before open() rather than after: getShell()
 						// was observed returning null immediately after
