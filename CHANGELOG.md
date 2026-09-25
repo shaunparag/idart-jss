@@ -140,6 +140,9 @@ Timed on a test database the size of a site with 16 years of data
   export for two years ran out of memory before.
 - Stock on Hand, opening a patient to dispense and saving a package are
   faster too.
+- The first print of a session no longer leaves the report viewer "Not
+  Responding" for several seconds: iDART finds the printers while you log
+  in.
 
 ### Patient import
 

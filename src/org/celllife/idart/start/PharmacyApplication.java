@@ -89,6 +89,7 @@ public class PharmacyApplication {
 
 		setWindowsDpiAware();
 		createDisplay();
+		loadPrintersInBackground();
 		openSplash();
 		loadConstants();
 		performStartupChecks();
@@ -133,6 +134,41 @@ public class PharmacyApplication {
 			// Windows 11 shows CCombo arrow buttons as empty boxes
 			CComboArrows.install(Display.getCurrent());
 		}
+	}
+
+	/**
+	 * The first print of a session waited several seconds, with the report
+	 * viewer "Not Responding", while Java started its printing support and
+	 * asked Windows about every printer. Doing that here, while the user
+	 * logs in, makes the first print open as quickly as later ones; Java
+	 * keeps what it learns for the rest of the session.
+	 */
+	private static void loadPrintersInBackground() {
+		if (!System.getProperty("os.name", "").toUpperCase().startsWith("WINDOWS")) {
+			return;
+		}
+		Thread printers = new Thread("load printers") {
+			@Override
+			public void run() {
+				try {
+					java.awt.Toolkit.getDefaultToolkit();
+					java.awt.print.PrinterJob.getPrinterJob();
+					for (javax.print.PrintService service : javax.print.PrintServiceLookup
+							.lookupPrintServices(null, null)) {
+						service.getSupportedAttributeValues(
+								javax.print.attribute.standard.Media.class, null, null);
+						service.getDefaultAttributeValue(
+								javax.print.attribute.standard.Media.class);
+					}
+					log.debug("Printers loaded.");
+				} catch (Throwable t) {
+					log.warn("Unable to load printers in advance; the first print may be slow.", t);
+				}
+			}
+		};
+		printers.setDaemon(true);
+		printers.setPriority(Thread.MIN_PRIORITY);
+		printers.start();
 	}
 
 	private static void launch(String[] args) {
