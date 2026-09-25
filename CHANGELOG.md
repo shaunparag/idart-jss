@@ -104,6 +104,12 @@ reports, are made by iDART itself the first time it opens the database. See
   button, which did nothing, is gone: View Report saves the report as a CSV
   file, which opens in Excel.
 - The report viewer opens maximised.
+- Print in the report viewer opens iDART's own print window straight away,
+  to choose the printer, the pages and the number of copies. **More
+  settings...** opens the Windows print window, for the tray, double-sided
+  printing and other printer settings. The Windows print window, which
+  Print used to open, can take several seconds to appear the first time in
+  a session, and the viewer showed "Not Responding" while it did.
 - View Report and Close are no longer cut off on date-range reports.
 - Run Data Quality Checks with nothing selected shows a message instead of
   crashing.

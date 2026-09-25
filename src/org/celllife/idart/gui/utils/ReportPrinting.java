@@ -1,21 +1,20 @@
 package org.celllife.idart.gui.utils;
 
-import java.awt.GraphicsEnvironment;
-import java.awt.Toolkit;
+import java.awt.Graphics;
+import java.awt.print.Book;
+import java.awt.print.PageFormat;
+import java.awt.print.Paper;
+import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
-import javax.print.attribute.standard.Media;
 
+import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperPrintManager;
 import net.sf.jasperreports.engine.print.JRPrinterAWT;
+import net.sf.jasperreports.engine.type.OrientationEnum;
 
 import org.apache.log4j.Logger;
 import org.eclipse.jface.action.ActionContributionItem;
@@ -31,31 +30,22 @@ import com.jasperassistant.designer.viewer.ViewerApp;
 import com.jasperassistant.designer.viewer.actions.PrintAction;
 
 /**
- * Printing from the report viewer. The viewer's own Print waits for the print
- * dialog on the viewer's thread, so the viewer showed "Not Responding" until
- * the dialog closed, and on the first print of a session the dialog took
- * several seconds to appear while Java set up the default printer.
+ * Printing from the report viewer. The viewer's own Print opens the Windows
+ * print dialog through Java, which on some PCs takes several seconds to
+ * appear the first time in a session while the viewer shows "Not
+ * Responding". Print now opens iDART's own print window (ReportPrintDialog)
+ * and prints on its own thread.
  */
 public final class ReportPrinting {
 
 	private static final Logger log = Logger.getLogger(ReportPrinting.class);
 
-	/**
-	 * The job the printers were set up with at startup, kept so the default
-	 * printer stays set up for the session.
-	 */
-	private static PrinterJob readyJob;
-
-	/** What the startup set-up took, for the print trace. */
-	private static volatile String startupTimes = "not finished";
-
 	private ReportPrinting() {
 	}
 
 	/**
-	 * Does the printer set-up a first print would do (finding the printers
-	 * and preparing the default one), on a background thread while the user
-	 * logs in. Windows only.
+	 * Finds the printers on a background thread while the user logs in, so
+	 * the print window can list them straight away. Windows only.
 	 */
 	public static void loadPrintersInBackground() {
 		if (!System.getProperty("os.name", "").toUpperCase().startsWith("WINDOWS")) {
@@ -66,26 +56,14 @@ public final class ReportPrinting {
 			public void run() {
 				try {
 					long start = System.currentTimeMillis();
-					Toolkit.getDefaultToolkit();
-					GraphicsEnvironment.getLocalGraphicsEnvironment()
-							.getDefaultScreenDevice().getDefaultConfiguration();
-					long screen = System.currentTimeMillis();
 					PrintService[] services = PrintServiceLookup
 							.lookupPrintServices(null, null);
-					for (PrintService service : services) {
-						service.getAttributes();
-						service.getSupportedAttributeValues(Media.class, null, null);
-					}
-					long found = System.currentTimeMillis();
-					PrinterJob job = prepareJob();
-					readyJob = job;
-					startupTimes = "Java graphics ready in " + (screen - start) + " ms; "
-							+ services.length + " printers found in " + (found - screen)
-							+ " ms; default printer " + describe(job) + " ready in "
-							+ (System.currentTimeMillis() - found) + " ms";
-					log.info(startupTimes);
+					PrintService standard = PrintServiceLookup.lookupDefaultPrintService();
+					log.info(services.length + " printers found in "
+							+ (System.currentTimeMillis() - start) + " ms; default "
+							+ (standard == null ? "(none)" : "\"" + standard.getName() + "\""));
 				} catch (Throwable t) {
-					log.warn("Unable to set up the printers in advance; the first print may be slow.", t);
+					log.warn("Unable to find the printers in advance.", t);
 				}
 			}
 		};
@@ -96,8 +74,8 @@ public final class ReportPrinting {
 
 	/**
 	 * Replaces the viewer's Print, on the toolbar and in the File menu, with
-	 * one that prints on its own thread, so the viewer keeps responding while
-	 * the print dialog is open and while the pages are sent. Call before the
+	 * one that opens iDART's print window and prints on its own thread, so
+	 * the viewer keeps responding while the pages are sent. Call before the
 	 * viewer is created.
 	 */
 	public static void install(ViewerApp viewer) {
@@ -123,18 +101,52 @@ public final class ReportPrinting {
 	}
 
 	/**
-	 * The steps JasperReports takes before showing the print dialog.
+	 * Prints pages firstPage to lastPage (counting from 0) on the printer
+	 * without a print dialog, set up the same way as JasperReports' own
+	 * printing (JRPrinterAWT): the paper is the report's page size, with no
+	 * margins.
 	 */
-	private static PrinterJob prepareJob() {
+	static void printPages(JasperPrint document, PrintService printer, int copies,
+			int firstPage, int lastPage) throws PrinterException, JRException {
 		PrinterJob job = PrinterJob.getPrinterJob();
-		JRPrinterAWT.initPrinterJobFields(job);
-		job.defaultPage();
-		return job;
+		job.setPrintService(printer);
+		PageFormat pageFormat = job.defaultPage();
+		Paper paper = pageFormat.getPaper();
+		job.setJobName("JasperReports - " + document.getName());
+		int width = document.getPageWidth();
+		int height = document.getPageHeight();
+		if (document.getOrientationValue() == OrientationEnum.LANDSCAPE) {
+			pageFormat.setOrientation(PageFormat.LANDSCAPE);
+			paper.setSize(height, width);
+			paper.setImageableArea(0, 0, height, width);
+		} else {
+			pageFormat.setOrientation(PageFormat.PORTRAIT);
+			paper.setSize(width, height);
+			paper.setImageableArea(0, 0, width, height);
+		}
+		pageFormat.setPaper(paper);
+		Book book = new Book();
+		book.append(new PageRange(document, firstPage), pageFormat, lastPage - firstPage + 1);
+		job.setPageable(book);
+		job.setCopies(copies);
+		job.print();
 	}
 
-	private static String describe(PrinterJob job) {
-		PrintService service = job.getPrintService();
-		return service == null ? "(none)" : "\"" + service.getName() + "\"";
+	/** JasperReports' page printing, starting from a given page. */
+	private static class PageRange extends JRPrinterAWT {
+
+		private final int firstPage;
+
+		PageRange(JasperPrint document, int firstPage) throws JRException {
+			super(document);
+			this.firstPage = firstPage;
+		}
+
+		@Override
+		public int print(Graphics graphics, PageFormat pageFormat, int pageIndex)
+				throws PrinterException {
+			return super.print(graphics, pageFormat, firstPage + pageIndex);
+		}
 	}
 
 	private static class PrintInBackground extends PrintAction {
@@ -160,24 +172,36 @@ public final class ReportPrinting {
 			if (printing || document == null || shell == null) {
 				return;
 			}
+			final int pageCount = document.getPages().size();
+			final ReportPrintDialog dialog = new ReportPrintDialog(shell, pageCount);
+			final ReportPrintDialog.Choice choice = dialog.open();
+			if (choice == ReportPrintDialog.Choice.CANCEL || shell.isDisposed()) {
+				return;
+			}
 			printing = true;
 			setEnabled(false);
 			final Display display = shell.getDisplay();
 			shell.setCursor(display.getSystemCursor(SWT.CURSOR_APPSTARTING));
 
-			Thread printThread = new Thread("print " + document.getName()) {
+			new Thread("print " + document.getName()) {
 				@Override
 				public void run() {
 					Throwable failure = null;
 					try {
-						long start = System.currentTimeMillis();
-						PrinterJob job = prepareJob();
-						long ready = System.currentTimeMillis();
-						boolean printed = JasperPrintManager.printReport(document, true);
-						log.info("Print \"" + document.getName() + "\": printer "
-								+ describe(job) + " ready in " + (ready - start) + " ms, "
-								+ (printed ? "printed" : "cancelled") + " after "
-								+ (System.currentTimeMillis() - ready) + " ms");
+						if (choice == ReportPrintDialog.Choice.PRINT) {
+							printPages(document, dialog.getPrinter(), dialog.getCopies(),
+									dialog.getFirstPage(), dialog.getLastPage());
+							log.info("Printed \"" + document.getName() + "\" on \""
+									+ dialog.getPrinter().getName() + "\": pages "
+									+ (dialog.getFirstPage() + 1) + "-"
+									+ (dialog.getLastPage() + 1) + " of " + pageCount + ", "
+									+ (dialog.getCopies() == 1 ? "1 copy"
+											: dialog.getCopies() + " copies"));
+						} else {
+							boolean printed = JasperPrintManager.printReport(document, true);
+							log.info((printed ? "Printed \"" : "Cancelled printing \"")
+									+ document.getName() + "\" from the Windows print window");
+						}
 					} catch (Throwable t) {
 						log.error("Unable to print \"" + document.getName() + "\"", t);
 						failure = t;
@@ -205,96 +229,7 @@ public final class ReportPrinting {
 						}
 					});
 				}
-			};
-			if (!traced) {
-				traced = true;
-				new PrintTrace(printThread, display.getThread()).start();
-			}
-			printThread.start();
-		}
-	}
-
-	/** Only the first print of a session is traced. */
-	private static boolean traced;
-
-	/**
-	 * Temporary, to find what makes the first print slow: writes what the
-	 * print and screen threads are doing, every 200 ms for up to 30 seconds
-	 * after Print is pressed, to print-trace.txt. A thread is written out
-	 * only when what it is doing changes.
-	 */
-	private static class PrintTrace extends Thread {
-
-		private final Thread printThread;
-
-		private final Thread screenThread;
-
-		private final long start = System.currentTimeMillis();
-
-		private final Map<Thread, String> last = new HashMap<Thread, String>();
-
-		PrintTrace(Thread printThread, Thread screenThread) {
-			super("print trace");
-			this.printThread = printThread;
-			this.screenThread = screenThread;
-			setDaemon(true);
-		}
-
-		@Override
-		public void run() {
-			PrintWriter out = null;
-			try {
-				out = new PrintWriter(new FileWriter("print-trace.txt"));
-				out.println("iDART print trace, " + new Date());
-				out.println("Java " + System.getProperty("java.version") + ", "
-						+ System.getProperty("os.name") + " "
-						+ System.getProperty("os.version"));
-				out.println("At startup: " + startupTimes);
-				out.println();
-				long end = start + 30000;
-				while (System.currentTimeMillis() < end) {
-					sample(out);
-					if (!printThread.isAlive() && printThread.getState() != State.NEW) {
-						break;
-					}
-					Thread.sleep(200);
-				}
-				out.println("+" + (System.currentTimeMillis() - start) + " ms: "
-						+ (printThread.isAlive() ? "trace stopped, still printing"
-								: "printing finished"));
-				log.info("Print trace written to print-trace.txt");
-			} catch (Exception e) {
-				log.warn("Unable to write the print trace", e);
-			} finally {
-				if (out != null) {
-					out.close();
-				}
-			}
-		}
-
-		private void sample(PrintWriter out) {
-			long now = System.currentTimeMillis() - start;
-			for (Map.Entry<Thread, StackTraceElement[]> entry : Thread
-					.getAllStackTraces().entrySet()) {
-				Thread thread = entry.getKey();
-				String name = thread.getName();
-				if (thread != printThread && thread != screenThread
-						&& !name.startsWith("AWT") && !name.startsWith("Java2D")
-						&& !name.startsWith("D3D") && !name.startsWith("Thread-")
-						&& !name.equals("load printers")) {
-					continue;
-				}
-				StringBuilder doing = new StringBuilder(thread.getState().toString());
-				StackTraceElement[] stack = entry.getValue();
-				for (int i = 0; i < stack.length && i < 30; i++) {
-					doing.append("\n    at ").append(stack[i]);
-				}
-				if (!doing.toString().equals(last.get(thread))) {
-					last.put(thread, doing.toString());
-					out.println("+" + now + " ms " + name + " " + doing);
-				}
-			}
-			out.flush();
+			}.start();
 		}
 	}
 }

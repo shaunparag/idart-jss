@@ -49,6 +49,8 @@ ChangeLog
   so their history is kept.
 * Reports are much faster on large databases: iDART adds indexes to the
   database the first time it opens it.
+* Print in the report viewer opens iDART's own print window straight
+  away; More settings... opens the Windows print window.
 
 The full list is in CHANGELOG.md in the iDART source repository.
 
