@@ -6,13 +6,13 @@ import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.lang.reflect.Method;
 
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperPrintManager;
 import net.sf.jasperreports.engine.print.JRPrinterAWT;
 import net.sf.jasperreports.engine.type.OrientationEnum;
 
@@ -30,11 +30,12 @@ import com.jasperassistant.designer.viewer.ViewerApp;
 import com.jasperassistant.designer.viewer.actions.PrintAction;
 
 /**
- * Printing from the report viewer. The viewer's own Print opens the Windows
- * print dialog through Java, which on some PCs takes several seconds to
- * appear the first time in a session while the viewer shows "Not
- * Responding". Print now opens iDART's own print window (ReportPrintDialog)
- * and prints on its own thread.
+ * Printing from the report viewer. The viewer's own Print opened the Windows
+ * print dialog through Java, which Windows opens behind the maximised viewer,
+ * and the viewer waited for it, showing "Not Responding" until someone found
+ * the dialog. Print now opens iDART's own print window (ReportPrintDialog)
+ * and prints on its own thread; its More settings opens the Windows print
+ * dialog and brings it to the front.
  */
 public final class ReportPrinting {
 
@@ -43,12 +44,16 @@ public final class ReportPrinting {
 	private ReportPrinting() {
 	}
 
+	private static boolean isWindows() {
+		return System.getProperty("os.name", "").toUpperCase().startsWith("WINDOWS");
+	}
+
 	/**
 	 * Finds the printers on a background thread while the user logs in, so
 	 * the print window can list them straight away. Windows only.
 	 */
 	public static void loadPrintersInBackground() {
-		if (!System.getProperty("os.name", "").toUpperCase().startsWith("WINDOWS")) {
+		if (!isWindows()) {
 			return;
 		}
 		Thread printers = new Thread("load printers") {
@@ -101,13 +106,17 @@ public final class ReportPrinting {
 	}
 
 	/**
-	 * Prints pages firstPage to lastPage (counting from 0) on the printer
-	 * without a print dialog, set up the same way as JasperReports' own
-	 * printing (JRPrinterAWT): the paper is the report's page size, with no
-	 * margins.
+	 * Prints pages firstPage to lastPage (counting from 0), set up the same
+	 * way as JasperReports' own printing (JRPrinterAWT): the paper is the
+	 * report's page size, with no margins. With chooseInWindows the Windows
+	 * print dialog opens first, for the given printer.
+	 *
+	 * @return the printer printed on, or null if the Windows print dialog was
+	 *         cancelled
 	 */
-	static void printPages(JasperPrint document, PrintService printer, int copies,
-			int firstPage, int lastPage) throws PrinterException, JRException {
+	static PrintService printPages(JasperPrint document, PrintService printer,
+			int copies, int firstPage, int lastPage, boolean chooseInWindows)
+			throws PrinterException, JRException {
 		PrinterJob job = PrinterJob.getPrinterJob();
 		job.setPrintService(printer);
 		PageFormat pageFormat = job.defaultPage();
@@ -129,7 +138,11 @@ public final class ReportPrinting {
 		book.append(new PageRange(document, firstPage), pageFormat, lastPage - firstPage + 1);
 		job.setPageable(book);
 		job.setCopies(copies);
+		if (chooseInWindows && !job.printDialog()) {
+			return null;
+		}
 		job.print();
+		return job.getPrintService();
 	}
 
 	/** JasperReports' page printing, starting from a given page. */
@@ -147,6 +160,86 @@ public final class ReportPrinting {
 				throws PrinterException {
 			return super.print(graphics, pageFormat, firstPage + pageIndex);
 		}
+	}
+
+	/**
+	 * Brings the Windows print dialog in front of the viewer once it opens.
+	 * Java opens it from another thread and without an owner, and Windows
+	 * does not let such a window come to the front by itself; the viewer's
+	 * thread, which has the front, can hand it over. Windows only.
+	 */
+	private static void bringPrintDialogForward(final Shell viewer, final Thread printThread) {
+		if (!isWindows()) {
+			return;
+		}
+		final Display display = viewer.getDisplay();
+		final long start = System.currentTimeMillis();
+		display.timerExec(100, new Runnable() {
+			@Override
+			public void run() {
+				if (viewer.isDisposed() || !printThread.isAlive()
+						|| System.currentTimeMillis() - start > 20000) {
+					return;
+				}
+				try {
+					long dialog = findPrintDialog(viewer.handle);
+					if (dialog != 0) {
+						boolean front = (Boolean) os("SetForegroundWindow", LONG, dialog);
+						os("BringWindowToTop", LONG, dialog);
+						log.info("Windows print dialog opened after "
+								+ (System.currentTimeMillis() - start) + " ms"
+								+ (front ? ", brought to the front" : ", could not bring it to the front"));
+						return;
+					}
+				} catch (Exception e) {
+					log.warn("Unable to bring the Windows print dialog to the front", e);
+					return;
+				}
+				display.timerExec(100, this);
+			}
+		});
+	}
+
+	private static final Class<?>[] LONG = { long.class };
+
+	private static final int GW_HWNDFIRST = 0;
+
+	private static final int GW_HWNDNEXT = 2;
+
+	/**
+	 * The visible standard dialog ("#32770", the Windows print dialog) that
+	 * belongs to iDART, or 0.
+	 */
+	private static long findPrintDialog(long viewer) throws Exception {
+		int process = (Integer) os("GetCurrentProcessId", new Class<?>[0]);
+		Class<?>[] getWindow = { long.class, int.class };
+		long window = (Long) os("GetWindow", getWindow, viewer, GW_HWNDFIRST);
+		while (window != 0) {
+			int[] owner = new int[1];
+			os("GetWindowThreadProcessId", new Class<?>[] { long.class, int[].class }, window, owner);
+			if (owner[0] == process && (Boolean) os("IsWindowVisible", LONG, window)) {
+				char[] name = new char[16];
+				int length = (Integer) os("GetClassName",
+						new Class<?>[] { long.class, char[].class, int.class }, window, name,
+						name.length);
+				if ("#32770".equals(new String(name, 0, length))) {
+					return window;
+				}
+			}
+			window = (Long) os("GetWindow", getWindow, window, GW_HWNDNEXT);
+		}
+		return 0;
+	}
+
+	/**
+	 * Calls a Windows function through SWT's Windows build, which this source
+	 * is not compiled against on other systems.
+	 */
+	private static Object os(String function, Class<?>[] types, Object... args)
+			throws Exception {
+		Method method = Class.forName("org.eclipse.swt.internal.win32.OS").getMethod(
+				function, types);
+		return method.invoke(null, args);
 	}
 
 	private static class PrintInBackground extends PrintAction {
@@ -174,33 +267,38 @@ public final class ReportPrinting {
 			}
 			final int pageCount = document.getPages().size();
 			final ReportPrintDialog dialog = new ReportPrintDialog(shell, pageCount);
-			final ReportPrintDialog.Choice choice = dialog.open();
+			ReportPrintDialog.Choice choice = dialog.open();
 			if (choice == ReportPrintDialog.Choice.CANCEL || shell.isDisposed()) {
 				return;
 			}
+			// More settings: all pages, chosen in the Windows print dialog
+			final boolean inWindows = choice == ReportPrintDialog.Choice.MORE_SETTINGS;
+			final int firstPage = inWindows ? 0 : dialog.getFirstPage();
+			final int lastPage = inWindows ? pageCount - 1 : dialog.getLastPage();
 			printing = true;
 			setEnabled(false);
 			final Display display = shell.getDisplay();
 			shell.setCursor(display.getSystemCursor(SWT.CURSOR_APPSTARTING));
 
-			new Thread("print " + document.getName()) {
+			Thread printThread = new Thread("print " + document.getName()) {
 				@Override
 				public void run() {
 					Throwable failure = null;
 					try {
-						if (choice == ReportPrintDialog.Choice.PRINT) {
-							printPages(document, dialog.getPrinter(), dialog.getCopies(),
-									dialog.getFirstPage(), dialog.getLastPage());
-							log.info("Printed \"" + document.getName() + "\" on \""
-									+ dialog.getPrinter().getName() + "\": pages "
-									+ (dialog.getFirstPage() + 1) + "-"
-									+ (dialog.getLastPage() + 1) + " of " + pageCount + ", "
-									+ (dialog.getCopies() == 1 ? "1 copy"
-											: dialog.getCopies() + " copies"));
+						PrintService printer = printPages(document, dialog.getPrinter(),
+								dialog.getCopies(), firstPage, lastPage, inWindows);
+						if (printer == null) {
+							log.info("Cancelled printing \"" + document.getName()
+									+ "\" in the Windows print dialog");
 						} else {
-							boolean printed = JasperPrintManager.printReport(document, true);
-							log.info((printed ? "Printed \"" : "Cancelled printing \"")
-									+ document.getName() + "\" from the Windows print window");
+							ReportPrintDialog.rememberPrinter(printer.getName());
+							log.info("Printed \"" + document.getName() + "\" on \""
+									+ printer.getName() + "\""
+									+ (inWindows ? " from the Windows print dialog"
+											: ": pages " + (firstPage + 1) + "-"
+													+ (lastPage + 1) + " of " + pageCount
+													+ ", " + (dialog.getCopies() == 1 ? "1 copy"
+															: dialog.getCopies() + " copies")));
 						}
 					} catch (Throwable t) {
 						log.error("Unable to print \"" + document.getName() + "\"", t);
@@ -229,7 +327,11 @@ public final class ReportPrinting {
 						}
 					});
 				}
-			}.start();
+			};
+			printThread.start();
+			if (inWindows) {
+				bringPrintDialogForward(shell, printThread);
+			}
 		}
 	}
 }

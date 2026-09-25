@@ -1,8 +1,11 @@
 package org.celllife.idart.gui.utils;
 
+import java.util.prefs.Preferences;
+
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
 
+import org.apache.log4j.Logger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -20,10 +23,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Spinner;
 
 /**
- * The report viewer's print window: printer, pages and copies. It opens
- * straight away; the Windows print dialog Java uses can take several seconds
- * to open the first time in a session, and is still offered through More
- * settings.
+ * The report viewer's print window: printer, pages and copies, or More
+ * settings for the Windows print dialog. It offers the printer last used for
+ * reports, kept for each Windows user, before the Windows default printer,
+ * which at a pharmacy is often the label printer.
  */
 class ReportPrintDialog {
 
@@ -31,8 +34,12 @@ class ReportPrintDialog {
 		PRINT, MORE_SETTINGS, CANCEL
 	}
 
-	/** The printer used last in this session, offered first next time. */
-	private static String lastPrinter;
+	private static final Logger log = Logger.getLogger(ReportPrintDialog.class);
+
+	/** Where the printer last used for reports is kept. */
+	private static final String PREFERENCES = "org/celllife/idart/reports";
+
+	private static final String PRINTER = "printer";
 
 	private final Shell parent;
 
@@ -76,7 +83,12 @@ class ReportPrintDialog {
 		for (PrintService p : printers) {
 			printerList.add(p.getName());
 		}
-		printerList.select(indexOf(printers, preferredPrinter()));
+		int chosen = indexOf(printers, lastPrinter());
+		if (chosen < 0) {
+			PrintService standard = PrintServiceLookup.lookupDefaultPrintService();
+			chosen = standard == null ? -1 : indexOf(printers, standard.getName());
+		}
+		printerList.select(Math.max(chosen, 0));
 
 		Label pagesLabel = new Label(shell, SWT.NONE);
 		pagesLabel.setText("Pages:");
@@ -148,7 +160,6 @@ class ReportPrintDialog {
 			public void widgetSelected(SelectionEvent e) {
 				choice = Choice.PRINT;
 				printer = printers[printerList.getSelectionIndex()];
-				lastPrinter = printer.getName();
 				copies = copyCount.getSelection();
 				firstPage = range.getSelection() ? from.getSelection() - 1 : 0;
 				lastPage = range.getSelection() ? to.getSelection() - 1 : pageCount - 1;
@@ -159,6 +170,8 @@ class ReportPrintDialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				choice = Choice.MORE_SETTINGS;
+				printer = printers[printerList.getSelectionIndex()];
+				copies = copyCount.getSelection();
 				shell.close();
 			}
 		});
@@ -202,12 +215,24 @@ class ReportPrintDialog {
 		return lastPage;
 	}
 
-	private String preferredPrinter() {
-		if (lastPrinter != null) {
-			return lastPrinter;
+	/** The printer last used for reports by this Windows user, or null. */
+	static String lastPrinter() {
+		try {
+			return Preferences.userRoot().node(PREFERENCES).get(PRINTER, null);
+		} catch (Throwable t) {
+			log.warn("Unable to read the printer last used for reports", t);
+			return null;
 		}
-		PrintService standard = PrintServiceLookup.lookupDefaultPrintService();
-		return standard == null ? null : standard.getName();
+	}
+
+	static void rememberPrinter(String name) {
+		try {
+			Preferences preferences = Preferences.userRoot().node(PREFERENCES);
+			preferences.put(PRINTER, name);
+			preferences.flush();
+		} catch (Throwable t) {
+			log.warn("Unable to remember the printer used for reports", t);
+		}
 	}
 
 	private static int indexOf(PrintService[] printers, String name) {
@@ -216,7 +241,7 @@ class ReportPrintDialog {
 				return i;
 			}
 		}
-		return 0;
+		return -1;
 	}
 
 	private Spinner pageSpinner(Composite parent, int value) {
