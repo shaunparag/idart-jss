@@ -80,6 +80,11 @@ public class PharmacyApplication {
 		// used for gui testing
 		System.setProperty("org.eclipse.swtbot.search.defaultKey",
 				iDartProperties.SWTBOT_KEY);
+		// iDART draws its screens with SWT, so Java's own graphics are only
+		// used off screen and for the print dialog. Without this Java sets up
+		// Direct3D when it opens its first window, which in iDART is the
+		// first print dialog.
+		System.setProperty("sun.java2d.d3d", "false");
 
 		DOMConfigurator.configure("log4j.xml");
 		log.info("");

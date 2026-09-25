@@ -1,7 +1,13 @@
 package org.celllife.idart.gui.utils;
 
+import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.awt.print.PrinterJob;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
@@ -40,6 +46,9 @@ public final class ReportPrinting {
 	 */
 	private static PrinterJob readyJob;
 
+	/** What the startup set-up took, for the print trace. */
+	private static volatile String startupTimes = "not finished";
+
 	private ReportPrinting() {
 	}
 
@@ -58,6 +67,9 @@ public final class ReportPrinting {
 				try {
 					long start = System.currentTimeMillis();
 					Toolkit.getDefaultToolkit();
+					GraphicsEnvironment.getLocalGraphicsEnvironment()
+							.getDefaultScreenDevice().getDefaultConfiguration();
+					long screen = System.currentTimeMillis();
 					PrintService[] services = PrintServiceLookup
 							.lookupPrintServices(null, null);
 					for (PrintService service : services) {
@@ -67,9 +79,11 @@ public final class ReportPrinting {
 					long found = System.currentTimeMillis();
 					PrinterJob job = prepareJob();
 					readyJob = job;
-					log.info(services.length + " printers found in " + (found - start)
+					startupTimes = "Java graphics ready in " + (screen - start) + " ms; "
+							+ services.length + " printers found in " + (found - screen)
 							+ " ms; default printer " + describe(job) + " ready in "
-							+ (System.currentTimeMillis() - found) + " ms");
+							+ (System.currentTimeMillis() - found) + " ms";
+					log.info(startupTimes);
 				} catch (Throwable t) {
 					log.warn("Unable to set up the printers in advance; the first print may be slow.", t);
 				}
@@ -151,7 +165,7 @@ public final class ReportPrinting {
 			final Display display = shell.getDisplay();
 			shell.setCursor(display.getSystemCursor(SWT.CURSOR_APPSTARTING));
 
-			new Thread("print " + document.getName()) {
+			Thread printThread = new Thread("print " + document.getName()) {
 				@Override
 				public void run() {
 					Throwable failure = null;
@@ -191,7 +205,96 @@ public final class ReportPrinting {
 						}
 					});
 				}
-			}.start();
+			};
+			if (!traced) {
+				traced = true;
+				new PrintTrace(printThread, display.getThread()).start();
+			}
+			printThread.start();
+		}
+	}
+
+	/** Only the first print of a session is traced. */
+	private static boolean traced;
+
+	/**
+	 * Temporary, to find what makes the first print slow: writes what the
+	 * print and screen threads are doing, every 200 ms for up to 30 seconds
+	 * after Print is pressed, to print-trace.txt. A thread is written out
+	 * only when what it is doing changes.
+	 */
+	private static class PrintTrace extends Thread {
+
+		private final Thread printThread;
+
+		private final Thread screenThread;
+
+		private final long start = System.currentTimeMillis();
+
+		private final Map<Thread, String> last = new HashMap<Thread, String>();
+
+		PrintTrace(Thread printThread, Thread screenThread) {
+			super("print trace");
+			this.printThread = printThread;
+			this.screenThread = screenThread;
+			setDaemon(true);
+		}
+
+		@Override
+		public void run() {
+			PrintWriter out = null;
+			try {
+				out = new PrintWriter(new FileWriter("print-trace.txt"));
+				out.println("iDART print trace, " + new Date());
+				out.println("Java " + System.getProperty("java.version") + ", "
+						+ System.getProperty("os.name") + " "
+						+ System.getProperty("os.version"));
+				out.println("At startup: " + startupTimes);
+				out.println();
+				long end = start + 30000;
+				while (System.currentTimeMillis() < end) {
+					sample(out);
+					if (!printThread.isAlive() && printThread.getState() != State.NEW) {
+						break;
+					}
+					Thread.sleep(200);
+				}
+				out.println("+" + (System.currentTimeMillis() - start) + " ms: "
+						+ (printThread.isAlive() ? "trace stopped, still printing"
+								: "printing finished"));
+				log.info("Print trace written to print-trace.txt");
+			} catch (Exception e) {
+				log.warn("Unable to write the print trace", e);
+			} finally {
+				if (out != null) {
+					out.close();
+				}
+			}
+		}
+
+		private void sample(PrintWriter out) {
+			long now = System.currentTimeMillis() - start;
+			for (Map.Entry<Thread, StackTraceElement[]> entry : Thread
+					.getAllStackTraces().entrySet()) {
+				Thread thread = entry.getKey();
+				String name = thread.getName();
+				if (thread != printThread && thread != screenThread
+						&& !name.startsWith("AWT") && !name.startsWith("Java2D")
+						&& !name.startsWith("D3D") && !name.startsWith("Thread-")
+						&& !name.equals("load printers")) {
+					continue;
+				}
+				StringBuilder doing = new StringBuilder(thread.getState().toString());
+				StackTraceElement[] stack = entry.getValue();
+				for (int i = 0; i < stack.length && i < 30; i++) {
+					doing.append("\n    at ").append(stack[i]);
+				}
+				if (!doing.toString().equals(last.get(thread))) {
+					last.put(thread, doing.toString());
+					out.println("+" + now + " ms " + name + " " + doing);
+				}
+			}
+			out.flush();
 		}
 	}
 }
